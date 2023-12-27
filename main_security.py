@@ -3,7 +3,7 @@ import mysql.connector
 import random
 import aspose.words as aw
 import ctypes, sys
-import os
+import os, os.path
 import math
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QDialog, QApplication, QFileDialog, \
@@ -49,6 +49,10 @@ class Ui_MainWindow(QtWidgets.QWidget):
         self.output_.setGeometry(QtCore.QRect(30, 150, 241, 55))
         self.output_.setObjectName("output_")
         self.output_.findChild(QPushButton, 'output_')
+        self.output_v = QtWidgets.QPushButton(self.centralwidget)
+        self.output_v.setGeometry(QtCore.QRect(30, 150, 241, 55))
+        self.output_v.setObjectName("output_v")
+        self.output_v.findChild(QPushButton, 'output_v')
         self.next_ = QtWidgets.QPushButton(self.centralwidget)
         self.next_.setGeometry(QtCore.QRect(30, 150, 241, 55))
         self.next_.setObjectName("next_")
@@ -156,7 +160,8 @@ class Ui_MainWindow(QtWidgets.QWidget):
         self.gen_b.setText(_translate("MainWindow", "Сгенерировать билет"))
         self.open_pars.setText(_translate("MainWindow", "Обзор..."))
         self.pars_.setText(_translate("MainWindow", "Загрузить"))
-        self.output_.setText(_translate("MainWindow", "Выгрузить"))
+        self.output_.setText(_translate("MainWindow", "Выгрузить билеты"))
+        self.output_v.setText(_translate("MainWindow", "Выгрузить вопросы"))
         # текствые поля (lineEdit)
         self.tasks_line.setText(_translate("MainWindow", "Количество заданий"))
         self.tokens_line.setText(_translate("MainWindow", "Количество билетов"))
@@ -168,8 +173,6 @@ class Ui_MainWindow(QtWidgets.QWidget):
 class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     # глобальные переменные
     file_ = ''
-    result = []
-    num = 0
     practic = False
 
     # основаная логика приложения
@@ -191,7 +194,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.open_pars.clicked.connect(self.pars_win)
         self.pars_.clicked.connect(self.pars)
         self.output_.clicked.connect(self.gen_out)
-        self.checkBox_practic_out.stateChanged.connect(self.clickBox)
+        self.output_v.clicked.connect(self.output_vopr)
         self.checkBox_practic_gen.stateChanged.connect(self.clickBox)
         self.showFullScreen()
 
@@ -207,6 +210,64 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 # иначе во весь экран
                 self.showFullScreen()
 
+    # вывод всех вопросов
+    def output_vopr(self):
+        all_name = []
+        all_name.append(self.combo20.currentText())
+        all_name.append(self.combo21.currentText())
+        all_name.append(self.combo22.currentText())
+        all_name.append(self.combo23.currentText())
+        all_name.append(self.combo24.currentText())
+        all_name.append(self.combo25.currentText())
+        sel_all_id = 'SELECT ' \
+                     '(SELECT `id` FROM `subjects` WHERE `name` = %s), ' \
+                     '(SELECT `id` FROM `teachers` WHERE `name` = %s), ' \
+                     '(SELECT `id` FROM `groups` WHERE `name` = %s), ' \
+                     '(SELECT `id` FROM `courses` WHERE `name` = %s), ' \
+                     '(SELECT `id` FROM `year_enter` WHERE `name` = %s), ' \
+                     '(SELECT `id` FROM `periods` WHERE `name` = %s) ' \
+                     'FROM `tokens`'
+        cursor.execute(sel_all_id, all_name)
+        all_id = cursor.fetchone()
+        sel_main_id = 'SELECT `id` FROM `tokens` WHERE `subjects_id` = %s AND `teachers_id` = %s AND `groups_id` = %s ' \
+                      'AND `courses_id` = %s AND `year_enter_id` = %s AND `periods_id` = %s'
+        cursor.execute(sel_main_id, all_id)
+        main_id = cursor.fetchall()
+        result = []
+        for i in range(0, len(main_id)):
+            id_ = []
+            sel_id = 'SELECT `subjects_id`, `teachers_id`, `groups_id`, `courses_id`, `year_enter_id`, `periods_id`, ' \
+                     '`blocks_id`, `tasks_id`, `type_tasks_id` FROM `tokens` WHERE `id` = %s'
+            id_.append(main_id[i][0])
+            cursor.execute(sel_id, id_)
+            res = cursor.fetchone()
+            sel_res = 'SELECT ' \
+                          '(SELECT `name` FROM `subjects` WHERE `id` = %s), ' \
+                          '(SELECT `name` FROM `teachers` WHERE `id` = %s), ' \
+                          '(SELECT `name` FROM `groups` WHERE `id` = %s), ' \
+                          '(SELECT `name` FROM `courses` WHERE `id` = %s), ' \
+                          '(SELECT `name` FROM `year_enter` WHERE `id` = %s), ' \
+                          '(SELECT `name` FROM `periods` WHERE `id` = %s), ' \
+                          '(SELECT `name` FROM `blocks` WHERE `id` = %s), ' \
+                          '(SELECT `name` FROM `tasks` WHERE `id` = %s), ' \
+                          '(SELECT `name` FROM `type_tasks` WHERE `id` = %s) ' \
+                          'FROM `tokens`'
+            cursor.execute(sel_res, res)
+            result.append(cursor.fetchone())
+        doc = aw.Document()
+        builder = aw.DocumentBuilder(doc)
+        builder.writeln("Дисциплина: " + str(result[0][0]))
+        builder.writeln("Преподаватель: " + str(result[0][1]))
+        builder.writeln("Группа: " + str(result[0][2]))
+        builder.writeln("Курс: " + str(result[0][3]))
+        builder.writeln("Год поступления: " + str(result[0][4]))
+        builder.writeln("Период: " + str(result[0][5]))
+        for g in range(0, len(result)):
+            builder.writeln("Тип работы: " + str(result[g][8]))
+            builder.writeln("Раздел: " + str(result[g][6]))
+            builder.writeln("Задание: " + str(result[g][7]))
+        doc.save('Вопросы по дисциплине ' + str(result[0][0]) + '.docx')
+        self.label_8.setText('Количество вопросов: ' + str(len(main_id)))
     # окно парсера
     def parserUI(self):
         hlayout = QHBoxLayout(self)
@@ -372,17 +433,17 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         vlayout10 = QVBoxLayout(self)
         vlayout10.addLayout(vlayout9)
         vlayout10.addWidget(self.combo25)
-        vlayout15 = QVBoxLayout(self)
-        vlayout15.addLayout(vlayout10)
-        vlayout15.addWidget(self.checkBox_practic_out)
         hlayout1 = QHBoxLayout(self)
-        hlayout1.addLayout(vlayout15)
+        hlayout1.addLayout(vlayout10)
         hlayout1.addWidget(self.label_8)
         vlayout11 = QVBoxLayout(self)
         vlayout11.addLayout(hlayout1)
         vlayout11.addWidget(self.output_)
+        vlayout12 = QVBoxLayout(self)
+        vlayout12.addLayout(vlayout11)
+        vlayout12.addWidget(self.output_v)
         self.tabWidget1.setTabText(2, "Output")
-        self.output.setLayout(vlayout11)
+        self.output.setLayout(vlayout12)
 
     # сам парсер
     def pars(self):
@@ -578,7 +639,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         try:
             return ctypes.windll.shell32.IsUserAnAdmin()
         except:
-
             return False
 
     # диалоговое окно
@@ -600,31 +660,90 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
     # вывод билетов
     def gen_out(self):
-        global result
-        global num
-        doc = aw.Document()
-        builder = aw.DocumentBuilder(doc)
-        for i in range(0, len(self.result)):
-            builder.writeln("Дисциплина: " + str(self.result[i][0]))
-            builder.writeln("Преподаватель: " + str(self.result[i][1]))
-            builder.writeln("Группа: " + str(self.result[i][2]))
-            builder.writeln("Курс: " + str(self.result[i][3]))
-            builder.writeln("Год поступления: " + str(self.result[i][4]))
-            builder.writeln("Период: " + str(self.result[i][5]))
-            builder.writeln("Тип работы: " + str(self.result[i][6]))
-            builder.writeln("Раздел: " + str(self.result[i][7]))
-            builder.writeln("Задание: " + str(self.result[i][8]))
-        self.num += 1
-        text, ok = QInputDialog.getText(self, 'Введите название каталога', 'Название каталога (папки)')
-        if ok:
-            self.folder_name = str(text)
-            os.mkdir(str(text))
-        doc.save('/' + str(self.folder_name) + '/' + 'Билет № ' + str(self.num) + '.docx')
-        self.label_8.setText('/' + str(self.folder_name) + '/' + 'Билет № ' + str(self.num) + '.docx')
+        all_name = []
+        all_name.append(self.combo20.currentText())
+        all_name.append(self.combo21.currentText())
+        all_name.append(self.combo22.currentText())
+        all_name.append(self.combo23.currentText())
+        all_name.append(self.combo24.currentText())
+        all_name.append(self.combo25.currentText())
+        sel_all_id = 'SELECT ' \
+                 '(SELECT `id` FROM `subjects` WHERE `name` = %s), ' \
+                 '(SELECT `id` FROM `teachers` WHERE `name` = %s), ' \
+                 '(SELECT `id` FROM `groups` WHERE `name` = %s), ' \
+                 '(SELECT `id` FROM `courses` WHERE `name` = %s), ' \
+                 '(SELECT `id` FROM `year_enter` WHERE `name` = %s), ' \
+                 '(SELECT `id` FROM `periods` WHERE `name` = %s) ' \
+                 'FROM `tokens`'
+        cursor.execute(sel_all_id, all_name)
+        all_id = cursor.fetchone()
+        sel_main_id = 'SELECT `id` FROM `tokens` WHERE `subjects_id` = %s AND `teachers_id` = %s AND `groups_id` = %s ' \
+                  'AND `courses_id` = %s AND `year_enter_id` = %s AND `periods_id` = %s'
+        cursor.execute(sel_main_id, all_id)
+        main_id = cursor.fetchall()
+        num_arr = []
+        for i in range(0, len(main_id)):
+            id_ = []
+            id_.append(main_id[i][0])
+            sel_num = 'SELECT `number` FROM `exam_tokens` WHERE `tokens_id` = %s'
+            cursor.execute(sel_num, id_)
+            num_exam = cursor.fetchall()
+            if num_exam != None:
+                for k in range(0, len(num_exam)):
+                    num = num_exam[k][0]
+                    if num not in num_arr:
+                        num_arr.append(num)
+        sprav_main = []
+        for i in range(0, len(main_id)):
+            sprav_main.append(main_id[i][0])
+        for i in range(0, len(num_arr)):
+            sel_id_tokens = 'SELECT `tokens_id` FROM `exam_tokens` WHERE `number` = %s'
+            number = []
+            number.append(num_arr[i])
+            cursor.execute(sel_id_tokens, number)
+            id_tokens = cursor.fetchall()
+            right_id_tokens = []
+            for j in range(0, len(id_tokens)):
+                if id_tokens[j][0] in sprav_main:
+                    right_id_tokens.append(id_tokens[j][0])
+            result = []
+            for z in range(0, len(right_id_tokens)):
+                sel_vopr = 'SELECT `subjects_id`, `teachers_id`, `groups_id`, `courses_id`, `year_enter_id`, `periods_id`, ' \
+                           '`tasks_id`, `type_tasks_id`, `blocks_id` FROM `tokens` WHERE `id` = %s'
+                id_vopr = []
+                id_vopr.append(right_id_tokens[z])
+                cursor.execute(sel_vopr, id_vopr)
+                res = cursor.fetchone()
+                sel_res = 'SELECT ' \
+                          '(SELECT `name` FROM `subjects` WHERE `id` = %s), ' \
+                          '(SELECT `name` FROM `teachers` WHERE `id` = %s), ' \
+                          '(SELECT `name` FROM `groups` WHERE `id` = %s), ' \
+                          '(SELECT `name` FROM `courses` WHERE `id` = %s), ' \
+                          '(SELECT `name` FROM `year_enter` WHERE `id` = %s), ' \
+                          '(SELECT `name` FROM `periods` WHERE `id` = %s), ' \
+                          '(SELECT `name` FROM `tasks` WHERE `id` = %s), ' \
+                          '(SELECT `name` FROM `type_tasks` WHERE `id` = %s), ' \
+                          '(SELECT `name` FROM `blocks` WHERE `id` = %s) ' \
+                          'FROM `tokens`'
+                cursor.execute(sel_res, res)
+                result.append(cursor.fetchone())
+            doc = aw.Document()
+            builder = aw.DocumentBuilder(doc)
+            for g in range(0, len(result)):
+                builder.writeln("Дисциплина: " + str(result[g][0]))
+                builder.writeln("Преподаватель: " + str(result[g][1]))
+                builder.writeln("Группа: " + str(result[g][2]))
+                builder.writeln("Курс: " + str(result[g][3]))
+                builder.writeln("Год поступления: " + str(result[g][4]))
+                builder.writeln("Период: " + str(result[g][5]))
+                builder.writeln("Тип работы: " + str(result[g][7]))
+                builder.writeln("Раздел: " + str(result[g][8]))
+                builder.writeln("Задание: " + str(result[g][6]))
+            doc.save('Билет № ' + str(num_arr[i]) + '.docx')
+            self.label_8.setText('Количество билетов ' + str(len(num_arr)))
 
     # сам генератор
     def generator(self):
-        global result
         res = []
         type_t = []
         cursor.execute('SELECT `id`, `name` FROM `subjects`')
@@ -663,7 +782,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             if check_sel[i][1] == self.combo5.currentText():
                 res.append(check_sel[i][0])
                 break
-
         type_t.append(res[0])
         type_t.append(res[1])
         type_t.append(res[2])
@@ -727,22 +845,23 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         sum_p = sum(self.num_blocks_p)
         sum_t = sum(self.num_blocks_t)
         sum_all = sum_p + sum_t
-        arr_tok = []
-        for i in range(0, set_):
-            if sum_all >= minimal:
-                arr_tok.append(minimal)
-                sum_all -= minimal
-            else:
-                arr_tok.append(sum_all)
-        type_t.append(0)
-        type_t.append(0)
+        arr_tok = [[] for x in range(0, set_)]
         if set_ == 0:
             set_ += 1
+        for i in range(0, set_):
+            for j in range(0, int(self.tokens_line.text()) // set_):
+                if sum_all >= minimal:
+                    arr_tok[i].append(minimal)
+                    sum_all -= minimal
+                else:
+                    arr_tok[i].append(sum_all)
+        type_t.append(0)
+        type_t.append(0)
         num_token = 0
         if len(arr_tok) == 0:
             arr_tok.append(int(self.tokens_line.text()))
-        for q in range(1, set_+1):
-            for m in range(1, arr_tok[q-1]+1):
+        for q in range(0, set_):
+            for h in range(0, len(arr_tok[q])):
                 num_token += 1
                 set_q = []
                 set_q.append(q)
@@ -816,15 +935,16 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                                         if int(search_data[3]) in df.values.tolist()[w]:
                                             if int(search_data[4]) in df.values.tolist()[w]:
                                                 if str(search_data[5]) in df.values.tolist()[w]:
-                                                    date = df.values.tolist()[w][6]
+                                                    date1 = df.values.tolist()[w][6]
                                                     break
+                        time_format = "%Y-%m-%d"
                         input_exam_tokens = 'INSERT INTO `exam_tokens` (`number`, `tokens_id`, `date_exam`, `set`) ' \
                                             'VALUES (%s, %s, %s, %s)'
                         exam_token = []
                         exam_token.append(num_token)
                         exam_token.append(id_token)
-                        exam_token.append(date)
-                        exam_token.append(q)
+                        exam_token.append(f"{date1:{time_format}}")
+                        exam_token.append(q+1)
                         cursor.execute(input_exam_tokens, exam_token)
                         conn.commit()
                     if self.practic == True:
@@ -884,15 +1004,16 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                                             if int(search_data[3]) in df.values.tolist()[w]:
                                                 if int(search_data[4]) in df.values.tolist()[w]:
                                                     if str(search_data[5]) in df.values.tolist()[w]:
-                                                        date = df.values.tolist()[w][6]
+                                                        date1 = df.values.tolist()[w][6]
                                                         break
+                            time_format = "%Y-%m-%d"
                             input_exam_tokens = 'INSERT INTO `exam_tokens` (`number`, `tokens_id`, `date_exam`, `set`) ' \
                                                 'VALUES (%s, %s, %s, %s)'
                             exam_token = []
                             exam_token.append(num_token)
                             exam_token.append(id_token)
-                            exam_token.append(date)
-                            exam_token.append(q)
+                            exam_token.append(f"{date1:{time_format}}")
+                            exam_token.append(q+1)
                             cursor.execute(input_exam_tokens, exam_token)
                             conn.commit()
                             type_task_id.pop(task)
@@ -1005,7 +1126,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                         if self.dlg.clickedButton().text() == "Нет":
                             right = False
                             break
-
         self.dlg = QMessageBox()
         self.dlg.addButton("Да", QMessageBox.AcceptRole)
         self.dlg.addButton("Нет", QMessageBox.AcceptRole)
@@ -1024,9 +1144,10 @@ if __name__ == "__main__":
     w.show()
     sys.exit(app.exec_())
 
-#++++++++++++++++++++++++++++++++++++++++++++++++++
+# ++++++++++++++++++++++++++++++++++++++++++++++++++
 '''
-Выгрузку всего и вообще посмотреть что там с выгрузкой!!!
 Учётки
 CRUD
+Админка
+Миграции
 '''
