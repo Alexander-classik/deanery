@@ -16,12 +16,15 @@ from PyQt5.QtWidgets import QComboBox
 from PyQt5.QtWidgets import *
 from PyQt5.Qt import *
 
-with open('save_config_db.json', encoding="utf8") as save:
+with open('config_path.json', encoding="utf8") as conf:
+    config = json.load(conf)
+
+with open(config[0]['config_db']+'/config_db.json', encoding="utf8") as save:
     json_db = json.load(save)
 
 # Подключение к БД
-conn = mysql.connector.connect(user=json_db['login'], password=json_db['password'], host=json_db['host'],
-                                   database=json_db['name_db'])
+conn = mysql.connector.connect(user=json_db[0]['login'], password=json_db[0]['password'], host=json_db[0]['host'],
+                                   database=json_db[0]['name_db'])
 cursor = conn.cursor(buffered=True)
 
 
@@ -30,11 +33,8 @@ class Ui_signUp(QtWidgets.QWidget):
         super(Ui_signUp, self).__init__()
         Dialog.setObjectName("Dialog")
         Dialog.resize(570, 375)
-        self.label = QtWidgets.QLineEdit()
-        self.label_2 = QtWidgets.QLineEdit()
         self.uname_lineEdit = QtWidgets.QLineEdit()
         self.password_lineEdit = QtWidgets.QLineEdit()
-        self.password_lineEdit.setEchoMode(QtWidgets.QLineEdit.EchoMode.Password)
         self.connect = QtWidgets.QPushButton("connect")
         self.signup_btn = QPushButton(Dialog)
         self.signup_btn.setObjectName("signup_btn")
@@ -46,13 +46,18 @@ class Ui_signUp(QtWidgets.QWidget):
         self.combo.setObjectName("combo")
         self.combo1 = QtWidgets.QComboBox(self.verticalLayoutWidget)
         self.combo1.setObjectName("combo1")
-        self.label_5 = QLabel(Dialog)
-        self.label_5.setObjectName("label_5")
-        self.label_6 = QLabel(Dialog)
-        self.label_6.setObjectName("label_6")
-        self.label_4 = QLabel(Dialog)
-        self.label_4.setAlignment(Qt.AlignCenter)
-        self.label_4.setObjectName("label_4")
+        self.label = QtWidgets.QLabel(Dialog)
+        self.label.setGeometry(QtCore.QRect(10, 110, 241, 17))
+        self.label.setObjectName("label")
+        self.label1 = QtWidgets.QLabel(Dialog)
+        self.label1.setGeometry(QtCore.QRect(10, 110, 241, 17))
+        self.label1.setObjectName("label1")
+        self.label2 = QtWidgets.QLabel(Dialog)
+        self.label2.setGeometry(QtCore.QRect(10, 110, 241, 17))
+        self.label2.setObjectName("label2")
+        self.label3 = QtWidgets.QLabel(Dialog)
+        self.label3.setGeometry(QtCore.QRect(10, 110, 241, 17))
+        self.label3.setObjectName("label3")
         cursor.execute('SELECT `name` FROM `roles`')
         check_sel = cursor.fetchall()
         for i in range(0, len(check_sel)):
@@ -61,22 +66,28 @@ class Ui_signUp(QtWidgets.QWidget):
         check_sel = cursor.fetchall()
         for i in range(0, len(check_sel)):
             self.combo1.addItem(check_sel[i][0])
-        self.form = QtWidgets.QFormLayout()
-        self.form.setSpacing(20)
-        self.form.addRow("&Регистрация", self.label_4)
-        self.form.addRow("&Логин: ", self.uname_lineEdit)
-        self.form.addRow("&Пароль: ", self.password_lineEdit)
-        self.form.addRow("&Роль: ", self.combo)
-        self.form.addRow("&Преподаватель: ", self.combo1)
-        self.form.addWidget(self.signup_btn)
-        self.setLayout(self.form)
+        vl = QVBoxLayout()
+        vl.addWidget(self.label)
+        vl.addWidget(self.uname_lineEdit)
+        vl.addWidget(self.label1)
+        vl.addWidget(self.password_lineEdit)
+        vl.addWidget(self.label2)
+        vl.addWidget(self.combo)
+        vl.addWidget(self.label3)
+        vl.addWidget(self.combo1)
+        vl.addWidget(self.signup_btn)
+        self.setLayout(vl)
         self.retranslateUi(Dialog)
         QtCore.QMetaObject.connectSlotsByName(Dialog)
 
     def retranslateUi(self, Dialog):
         _translate = QtCore.QCoreApplication.translate
-        Dialog.setWindowTitle(_translate("Dialog", "Dialog"))
-        self.signup_btn.setText(_translate("Dialog", "Sign Up"))
+        Dialog.setWindowTitle(_translate("Dialog", "Регистрация"))
+        self.signup_btn.setText(_translate("Dialog", "Зарегистрировать"))
+        self.label.setText(_translate("Dialog", "Логин:"))
+        self.label1.setText(_translate("Dialog", "Пароль:"))
+        self.label2.setText(_translate("Dialog", "Роль:"))
+        self.label3.setText(_translate("Dialog", "Преподаватель:"))
 
 
 class Dialog(QDialog, Ui_signUp):
@@ -136,22 +147,6 @@ class Ui_Login(QtWidgets.QWidget):
     def setupUi(self, Login):
         Login.setObjectName("Login")
         Login.resize(496, 265)
-        self.u_name_label = QLabel(Login)
-        self.u_name_label.setGeometry(QRect(150, 110, 71, 20))
-        font = QFont()
-        font.setPointSize(10)
-        font.setBold(False)
-        font.setWeight(50)
-        self.u_name_label.setFont(font)
-        self.u_name_label.setAlignment(Qt.AlignCenter)
-        self.u_name_label.setObjectName("u_name_label")
-        self.pass_label = QLabel(Login)
-        self.pass_label.setGeometry(QRect(150, 150, 71, 21))
-        font = QFont()
-        font.setPointSize(10)
-        self.pass_label.setFont(font)
-        self.pass_label.setAlignment(Qt.AlignCenter)
-        self.pass_label.setObjectName("pass_label")
         self.uname_lineEdit = QLineEdit(Login)
         self.uname_lineEdit.setGeometry(QRect(230, 110, 113, 20))
         self.uname_lineEdit.setObjectName("uname_lineEdit")
@@ -167,22 +162,34 @@ class Ui_Login(QtWidgets.QWidget):
         self.signup_btn.setObjectName("signup_btn")
         self.label = QLabel(Login)
         self.label.setGeometry(QRect(190, 10, 211, 51))
-        font = QFont()
-        font.setPointSize(18)
-        self.label.setFont(font)
         self.label.setObjectName("label")
-
+        self.label1 = QLabel(Login)
+        self.label1.setGeometry(QRect(190, 10, 211, 51))
+        self.label1.setObjectName("label1")
+        hl = QHBoxLayout()
+        hl.addWidget(self.label)
+        hl.addWidget(self.uname_lineEdit)
+        hl1 = QHBoxLayout()
+        hl1.addWidget(self.label1)
+        hl1.addWidget(self.pass_lineEdit)
+        hl2 = QHBoxLayout()
+        hl2.addWidget(self.login_btn)
+        hl2.addWidget(self.signup_btn)
+        vl = QVBoxLayout()
+        vl.addLayout(hl)
+        vl.addLayout(hl1)
+        vl.addLayout(hl2)
+        self.setLayout(vl)
         self.retranslateUi(Login)
         QMetaObject.connectSlotsByName(Login)
 
     def retranslateUi(self, Login):
         _translate = QCoreApplication.translate
-        Login.setWindowTitle(_translate("Login", "Login Form"))
-        self.u_name_label.setText(_translate("Login", "USERNAME "))
-        self.pass_label.setText(_translate("Login", "PASSWORD"))
-        self.login_btn.setText(_translate("Login", "Login"))
-        self.signup_btn.setText(_translate("Login", "Sign Up"))
-        self.label.setText(_translate("Login", "Login Form"))
+        Login.setWindowTitle(_translate("Login", "Вход в систему"))
+        self.login_btn.setText(_translate("Login", "Войти"))
+        self.signup_btn.setText(_translate("Login", "Зарегистрировать"))
+        self.label.setText(_translate("Login", "Логин"))
+        self.label1.setText(_translate("Login", "Пароль"))
 
 
 class Login(QtWidgets.QDialog, Ui_Login):
@@ -254,6 +261,7 @@ class Ui_UpdateToken(QtWidgets.QWidget):
         self.update_btn.setObjectName("update_btn")
         self.retranslateUi(UpdateToken)
         QtCore.QMetaObject.connectSlotsByName(UpdateToken)
+
     def retranslateUi(self, UpdateToken):
         _translate = QCoreApplication.translate
         UpdateToken.setWindowTitle(_translate("UpdateToken", "Редактирование"))
@@ -492,6 +500,7 @@ class Ui_DeleteToken(QtWidgets.QWidget):
         self.delete_btn.setObjectName("delete_btn")
         self.retranslateUi(DeleteToken)
         QtCore.QMetaObject.connectSlotsByName(DeleteToken)
+
     def retranslateUi(self, DeleteToken):
         _translate = QCoreApplication.translate
         DeleteToken.setWindowTitle(_translate("DeleteToken", "Удаление"))
@@ -684,7 +693,7 @@ class OptionsDB(QtWidgets.QDialog, Ui_OptionsDB):
         self.save_btn.clicked.connect(self.save_)
 
     def save_(self):
-        data = {'login': self.name_line.text(), 'password': self.name_line.text(), 'host': self.name_line.text(), 'name_db': self.name_line.text()}
+        data = {'login': self.name_line.text(), 'password': self.pass_line.text(), 'host': self.host_line.text(), 'name_db': self.db_line.text()}
         with open('config_db.json', 'w') as save:
             json.dump(data, save)
 
@@ -705,7 +714,7 @@ class ViewUsers(QtWidgets.QDialog, Ui_ViewUsers):
     def __init__(self, parent=None):
         super(ViewUsers, self).__init__(parent)
         self.setupUi(self)
-        cursor.execute('SELECT `id`, `roles_id`, `teachers_id` FROM `users`')
+        cursor.execute('SELECT * FROM `users`')
         id_uch = cursor.fetchall()
         self.table = QTableWidget(self)
         self.table.setColumnCount(len(id_uch[0]))
@@ -715,10 +724,14 @@ class ViewUsers(QtWidgets.QDialog, Ui_ViewUsers):
         for i in range(0, len(id_uch)):
             id_ = []
             id_.append(id_uch[i][0])
-            id_.append(id_uch[i][1])
-            id_.append(id_uch[i][2])
+            id_.append(id_uch[i][0])
+            id_.append(id_uch[i][0])
+            id_.append(id_uch[i][3])
+            id_.append(id_uch[i][4])
             sel_profile = 'SELECT ' \
-                          '(SELECT `id`, `login`, `password` FROM `users` WHERE `id` = %s), ' \
+                          '(SELECT `id` FROM `users` WHERE `id` = %s), ' \
+                          '(SELECT `login` FROM `users` WHERE `id` = %s), ' \
+                          '(SELECT `password` FROM `users` WHERE `id` = %s), ' \
                           '(SELECT `name` FROM `roles` WHERE `id` = %s), ' \
                           '(SELECT `name` FROM `teachers` WHERE `id` = %s) ' \
                           'FROM `users`'
@@ -761,10 +774,14 @@ class UpdateUsers(QtWidgets.QDialog, Ui_UpdateUsers):
         for i in range(0, len(id_uch)):
             id_ = []
             id_.append(id_uch[i][0])
+            id_.append(id_uch[i][0])
+            id_.append(id_uch[i][0])
             id_.append(id_uch[i][1])
             id_.append(id_uch[i][2])
             sel_profile = 'SELECT ' \
-                          '(SELECT `id`, `login`, `password` FROM `users` WHERE `id` = %s), ' \
+                          '(SELECT `id` FROM `users` WHERE `id` = %s), ' \
+                          '(SELECT `login` FROM `users` WHERE `id` = %s), ' \
+                          '(SELECT `password` FROM `users` WHERE `id` = %s), ' \
                           '(SELECT `name` FROM `roles` WHERE `id` = %s), ' \
                           '(SELECT `name` FROM `teachers` WHERE `id` = %s) ' \
                           'FROM `users`'
@@ -887,7 +904,7 @@ class DeleteUsers(QtWidgets.QDialog, Ui_DeleteUsers):
         super(DeleteUsers, self).__init__(parent)
         self.setupUi(self)
         self.delete_btn.clicked.connect(self.delete_users)
-        cursor.execute('SELECT `id`, `roles_id`, `teachers_id` FROM `users`')
+        cursor.execute('SELECT * FROM `users`')
         id_uch = cursor.fetchall()
         self.table = QTableWidget(self)
         self.table.setColumnCount(len(id_uch[0])+1)
@@ -897,10 +914,14 @@ class DeleteUsers(QtWidgets.QDialog, Ui_DeleteUsers):
         for i in range(0, len(id_uch)):
             id_ = []
             id_.append(id_uch[i][0])
-            id_.append(id_uch[i][1])
-            id_.append(id_uch[i][2])
+            id_.append(id_uch[i][0])
+            id_.append(id_uch[i][0])
+            id_.append(id_uch[i][3])
+            id_.append(id_uch[i][4])
             sel_profile = 'SELECT ' \
-                          '(SELECT `id`, `login`, `password` FROM `users` WHERE `id` = %s), ' \
+                          '(SELECT `id` FROM `users` WHERE `id` = %s), ' \
+                          '(SELECT `login` FROM `users` WHERE `id` = %s), ' \
+                          '(SELECT `password` FROM `users` WHERE `id` = %s), ' \
                           '(SELECT `name` FROM `roles` WHERE `id` = %s), ' \
                           '(SELECT `name` FROM `teachers` WHERE `id` = %s) ' \
                           'FROM `users`'
@@ -990,7 +1011,8 @@ class OptionsUsers(QtWidgets.QDialog, Ui_OptionsUsers):
         self.UU.show()
 
     def delete_user(self):
-        pass
+        self.DU = DeleteUsers(self)
+        self.DU.show()
 
 
 class Ui_MainWindow(QtWidgets.QWidget):
@@ -1314,6 +1336,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.pars_.clicked.connect(self.pars)
         self.output_.clicked.connect(self.gen_out)
         self.output_v.clicked.connect(self.output_vopr)
+        self.options_db.clicked.connect(self.optionsDB)
+        self.options_users.clicked.connect(self.optionsUsers)
         self.checkBox_practic_gen.stateChanged.connect(self.clickBox)
         self.showFullScreen()
 
@@ -2356,7 +2380,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # Парс excel
         result = []
 
-        # Парс ТЕМ
+        # Парс ДИСЦИПЛИН
         for i in range(0, len(df['Дисциплины'].tolist())):
             add_ser = 'INSERT INTO `subjects` (`name`) VALUES (%s)'
             result.append(df['Дисциплины'].tolist()[i])
@@ -2539,7 +2563,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def adminIs_Ui(self):
         role_id = []
         role_id.append(self.user[3])
-        sel_role_name = 'SELECT `name` FROM `id` = %s'
+        sel_role_name = 'SELECT `name` FROM `roles` WHERE `id` = %s'
         cursor.execute(sel_role_name, role_id)
         role_name = cursor.fetchone()[0]
         if role_name == 'Администратор':
@@ -2549,8 +2573,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             vl.addWidget(self.options_users)
             self.tabWidget.setTabText(6, "Admin")
             self.admin_.setLayout(vl)
-        else:
-            ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, __file__, None, 1)
 
     # открыть окно настроек БД
     def optionsDB(self):
@@ -2644,13 +2666,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             builder = aw.DocumentBuilder(doc)
             for g in range(0, len(result)):
                 builder.writeln("Дисциплина: " + str(result[g][0]))
-                builder.writeln("Преподаватель: " + str(result[g][1]))
-                builder.writeln("Группа: " + str(result[g][2]))
-                builder.writeln("Курс: " + str(result[g][3]))
-                builder.writeln("Год поступления: " + str(result[g][4]))
-                builder.writeln("Период: " + str(result[g][5]))
-                builder.writeln("Тип работы: " + str(result[g][7]))
-                builder.writeln("Раздел: " + str(result[g][8]))
                 builder.writeln("Задание: " + str(result[g][6]))
             doc.save('Билет № ' + str(num_arr[i]) + '.docx')
             self.label_8.setText('Количество билетов ' + str(len(num_arr)))
@@ -3065,7 +3080,8 @@ if __name__ == "__main__":
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++
 '''
-АРМ
-Миграции
-Сделать вывод билетов по шаблону
+Сделать проверку на длину пароля при регистрации !!!!!
+Сделать вывод билетов по шаблону ??
+Конвертер из Word в Excel ????
+АИС
 '''
