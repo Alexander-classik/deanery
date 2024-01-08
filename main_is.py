@@ -2698,11 +2698,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
             par_format = builder.paragraph_format
             par_format.alignment = aw.ParagraphAlignment.LEFT
-
             builder.list_format.apply_number_default()
             for g in range(0, len(result)):
-                builder.writeln("Задание: " + str(result[g][6]))
+                builder.writeln(str(result[g][6]))
             builder.list_format.remove_numbers()
+            builder.write('\n')
             builder.writeln("Зам. директор по УМР:_________________                        ___________________")
             font = builder.font
             font.size = 10
