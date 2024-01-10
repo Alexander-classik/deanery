@@ -254,23 +254,23 @@ class Login(QtWidgets.QDialog, Ui_Login):
             ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, __file__, None, 1)
 
 
-class Ui_UpdateToken(QtWidgets.QWidget):
-    def setupUi(self, UpdateToken):
-        UpdateToken.setObjectName("UpdateUsers")
-        UpdateToken.resize(496, 265)
-        self.update_btn = QtWidgets.QPushButton(UpdateToken)
+class Ui_UpdateQuestion(QtWidgets.QWidget):
+    def setupUi(self, UpdateQuestion):
+        UpdateQuestion.setObjectName("UpdateQuestion")
+        UpdateQuestion.resize(496, 265)
+        self.update_btn = QtWidgets.QPushButton(UpdateQuestion)
         self.update_btn.setGeometry(QRect(230, 200, 51, 23))
         self.update_btn.setObjectName("update_btn")
-        self.retranslateUi(UpdateToken)
-        QtCore.QMetaObject.connectSlotsByName(UpdateToken)
+        self.retranslateUi(UpdateQuestion)
+        QtCore.QMetaObject.connectSlotsByName(UpdateQuestion)
 
-    def retranslateUi(self, UpdateToken):
+    def retranslateUi(self, UpdateQuestion):
         _translate = QCoreApplication.translate
-        UpdateToken.setWindowTitle(_translate("UpdateToken", "Редактирование"))
-        self.update_btn.setText(_translate("UpdateToken", "Редактировать"))
+        UpdateQuestion.setWindowTitle(_translate("UpdateQuestion", "Редактирование"))
+        self.update_btn.setText(_translate("UpdateQuestion", "Редактировать"))
 
 
-class UpdateToken(QtWidgets.QDialog, Ui_UpdateToken):
+class UpdateQuestion(QtWidgets.QDialog, Ui_UpdateQuestion):
     def __init__(self, data, users, parent=None):
         sub_name = []
         tea_name = []
@@ -321,7 +321,7 @@ class UpdateToken(QtWidgets.QDialog, Ui_UpdateToken):
         id_ = cursor.fetchall()
         for i in range(0, len(id_)):
             main_id.append(id_[i][0])
-        super(UpdateToken, self).__init__(parent)
+        super(UpdateQuestion, self).__init__(parent)
         self.setupUi(self)
         self.update_btn.clicked.connect(self.update_token)
         vopr_id = []
@@ -493,23 +493,23 @@ class UpdateToken(QtWidgets.QDialog, Ui_UpdateToken):
                 conn.commit()
 
 
-class Ui_DeleteToken(QtWidgets.QWidget):
-    def setupUi(self, DeleteToken):
-        DeleteToken.setObjectName("DeleteToken")
-        DeleteToken.resize(496, 265)
-        self.delete_btn = QtWidgets.QPushButton(DeleteToken)
+class Ui_DeleteQuestion(QtWidgets.QWidget):
+    def setupUi(self, DeleteQuestion):
+        DeleteQuestion.setObjectName("DeleteQuestion")
+        DeleteQuestion.resize(496, 265)
+        self.delete_btn = QtWidgets.QPushButton(DeleteQuestion)
         self.delete_btn.setGeometry(QRect(230, 200, 51, 23))
         self.delete_btn.setObjectName("delete_btn")
-        self.retranslateUi(DeleteToken)
-        QtCore.QMetaObject.connectSlotsByName(DeleteToken)
+        self.retranslateUi(DeleteQuestion)
+        QtCore.QMetaObject.connectSlotsByName(DeleteQuestion)
 
-    def retranslateUi(self, DeleteToken):
+    def retranslateUi(self, DeleteQuestion):
         _translate = QCoreApplication.translate
-        DeleteToken.setWindowTitle(_translate("DeleteToken", "Удаление"))
-        self.delete_btn.setText(_translate("DeleteToken", "Удалить"))
+        DeleteQuestion.setWindowTitle(_translate("DeleteQuestion", "Удаление"))
+        self.delete_btn.setText(_translate("DeleteQuestion", "Удалить"))
 
 
-class DeleteToken(QtWidgets.QDialog, Ui_DeleteToken):
+class DeleteQuestion(QtWidgets.QDialog, Ui_DeleteQuestion):
     def __init__(self, data, parent=None):
         sub_name = []
         tea_name = []
@@ -560,7 +560,7 @@ class DeleteToken(QtWidgets.QDialog, Ui_DeleteToken):
         id_ = cursor.fetchall()
         for i in range(0, len(id_)):
             main_id.append(id_[i][0])
-        super(DeleteToken, self).__init__(parent)
+        super(DeleteQuestion, self).__init__(parent)
         self.setupUi(self)
         self.delete_btn.clicked.connect(self.delete_token)
         vopr_id = []
@@ -1198,6 +1198,24 @@ class Ui_MainWindow(QtWidgets.QWidget):
         self.label_48 = QtWidgets.QLabel(self.centralwidget)
         self.label_48.setGeometry(QtCore.QRect(10, 110, 241, 17))
         self.label_48.setObjectName("label_48")
+        self.label_51 = QtWidgets.QLabel(self.centralwidget)
+        self.label_51.setGeometry(QtCore.QRect(10, 110, 241, 17))
+        self.label_51.setObjectName("label_51")
+        self.label_52 = QtWidgets.QLabel(self.centralwidget)
+        self.label_52.setGeometry(QtCore.QRect(10, 110, 241, 17))
+        self.label_52.setObjectName("label_52")
+        self.label_53 = QtWidgets.QLabel(self.centralwidget)
+        self.label_53.setGeometry(QtCore.QRect(10, 110, 241, 17))
+        self.label_53.setObjectName("label_53")
+        self.label_54 = QtWidgets.QLabel(self.centralwidget)
+        self.label_54.setGeometry(QtCore.QRect(10, 110, 241, 17))
+        self.label_54.setObjectName("label_54")
+        self.label_55 = QtWidgets.QLabel(self.centralwidget)
+        self.label_55.setGeometry(QtCore.QRect(10, 110, 241, 17))
+        self.label_55.setObjectName("label_55")
+        self.label_56 = QtWidgets.QLabel(self.centralwidget)
+        self.label_56.setGeometry(QtCore.QRect(10, 110, 241, 17))
+        self.label_56.setObjectName("label_56")
         self.blocks_line = QtWidgets.QLineEdit(self.centralwidget)
         self.blocks_line.setGeometry(QtCore.QRect(10, 130, 221, 25))
         self.blocks_line.setObjectName("blocks_line")
@@ -1219,6 +1237,10 @@ class Ui_MainWindow(QtWidgets.QWidget):
         self.filename_2 = QtWidgets.QLineEdit(self.centralwidget)
         self.filename_2.setGeometry(QtCore.QRect(10, 130, 221, 25))
         self.filename_2.setObjectName("filename_2")
+        self.delete_token = QtWidgets.QPushButton(self.centralwidget)
+        self.delete_token.setGeometry(QtCore.QRect(30, 150, 241, 55))
+        self.delete_token.setObjectName("delete_token")
+        self.delete_token.findChild(QPushButton, 'delete_token')
         self.checkBox_practic_out = QtWidgets.QCheckBox(self.centralwidget)
         self.checkBox_practic_out.setGeometry(QtCore.QRect(170, 120, 81, 20))
         self.checkBox_practic_out.setObjectName('checkBox_practic_out')
@@ -1242,6 +1264,12 @@ class Ui_MainWindow(QtWidgets.QWidget):
         MainWindow.setWindowTitle(_translate("MainWindow", "Генератор билетов"))
         # Надписи (label)
         self.label_10.setText(_translate("MainWindow", "Введите кол-во заданий из одного раздела:"))
+        self.label_56.setText(_translate("MainWindow", "Выберите период:"))
+        self.label_55.setText(_translate("MainWindow", "Выберите год поступления:"))
+        self.label_54.setText(_translate("MainWindow", "Выберите курс:"))
+        self.label_53.setText(_translate("MainWindow", "Выберите группу:"))
+        self.label_52.setText(_translate("MainWindow", "Выберите преподавателя:"))
+        self.label_51.setText(_translate("MainWindow", "Выберите дисциплину:"))
         self.label_48.setText(_translate("MainWindow", "Выберите модуль/раздел:"))
         self.label_47.setText(_translate("MainWindow", "Выберите тип задания:"))
         self.label_46.setText(_translate("MainWindow", "Выберите период:"))
@@ -1280,6 +1308,7 @@ class Ui_MainWindow(QtWidgets.QWidget):
         self.label_2.setText(_translate("MainWindow", "Укажите путь к файлу:"))
         self.label_1.setText(_translate("MainWindow", "Выберите дисциплину:"))
         # кнопки (button)
+        self.delete_token.setText(_translate("MainWindow", "Удалить"))
         self.options_db.setText(_translate("MainWindow", "Настроить базу данных"))
         self.options_users.setText(_translate("MainWindow", "Настроить пользователей"))
         self.delete_t.setText(_translate("MainWindow", "Просмотреть"))
@@ -1318,28 +1347,32 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.parser = QWidget()
         self.generator_ = QWidget()
         self.output = QWidget()
-        self.create_token_ = QWidget()
-        self.update_token_ = QWidget()
-        self.delete_token_ = QWidget()
+        self.create_question_ = QWidget()
+        self.update_question_ = QWidget()
+        self.delete_question_ = QWidget()
         self.admin_ = QWidget()
+        self.delete_tokens_ = QWidget()
         self.tabWidget = QTabWidget(self.centralwidget)
         self.tabWidget.addTab(self.parser, "Загрузка")
         self.tabWidget.addTab(self.generator_, "Генератор")
         self.tabWidget.addTab(self.output, "Выгрузка")
-        self.tabWidget.addTab(self.create_token_, "Добавление билетов")
-        self.tabWidget.addTab(self.update_token_, "Обновление билетов")
-        self.tabWidget.addTab(self.delete_token_, "Удаление вопросов")
+        self.tabWidget.addTab(self.create_question_, "Добавление вопросов")
+        self.tabWidget.addTab(self.update_question_, "Обновление вопросов")
+        self.tabWidget.addTab(self.delete_question_, "Удаление вопросов")
         self.tabWidget.addTab(self.admin_, "Администрирование")
+        self.tabWidget.addTab(self.delete_tokens_, "Удаление билетов")
         self.parserUI()
         self.generatorUI()
         self.outputUI()
-        self.create_token_Ui()
-        self.update_token_Ui()
-        self.delete_token_Ui()
+        self.create_question_Ui()
+        self.update_question_Ui()
+        self.delete_question_Ui()
         self.adminIs_Ui()
-        self.delete_t.clicked.connect(self.delete_token)
-        self.update_t.clicked.connect(self.update_token)
-        self.add_t.clicked.connect(self.create_token)
+        self.delete_tokens_Ui()
+        self.delete_token.clicked.connect(self.delete_tokens)
+        self.delete_t.clicked.connect(self.delete_question)
+        self.update_t.clicked.connect(self.update_question)
+        self.add_t.clicked.connect(self.create_question)
         self.gen_b.clicked.connect(self.NumTasksUI)
         self.next_.clicked.connect(self.generator)
         self.open_pars.clicked.connect(self.pars_win)
@@ -1351,8 +1384,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.checkBox_practic_gen.stateChanged.connect(self.clickBox)
         self.showFullScreen()
 
-    # окно добавления билетов
-    def create_token_Ui(self):
+    # окно добавления вопросов
+    def create_question_Ui(self):
         if self.user[4] != None:
             teacher = []
             teacher.append(self.user[4])
@@ -1517,11 +1550,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         vlayout15 = QVBoxLayout(self)
         vlayout15.addLayout(hlayout1)
         vlayout15.addWidget(self.add_t)
-        self.tabWidget.setTabText(3, "CteateT")
-        self.create_token_.setLayout(vlayout15)
+        self.tabWidget.setTabText(3, "CteateQ")
+        self.create_question_.setLayout(vlayout15)
 
-    # добавление билетов
-    def create_token(self):
+    # добавление вопросов
+    def create_question(self):
         data = []
         data.append(self.combo30.currentText())
         data.append(self.combo31.currentText())
@@ -1600,8 +1633,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             cursor.execute(in_token, data_id)
             conn.commit()
 
-    # окно обновления билетов
-    def update_token_Ui(self):
+    # окно обновления вопросов
+    def update_question_Ui(self):
         if self.user[4] != None:
             teacher = []
             teacher.append(self.user[4])
@@ -1779,11 +1812,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         vlayout15 = QVBoxLayout(self)
         vlayout15.addLayout(vlayout14)
         vlayout15.addWidget(self.update_t)
-        self.tabWidget.setTabText(4, "UpdateT")
-        self.update_token_.setLayout(vlayout15)
+        self.tabWidget.setTabText(4, "UpdateQ")
+        self.update_question_.setLayout(vlayout15)
 
-    # открыть класс с обновлением билетов
-    def update_token(self):
+    # открыть класс с обновлением вопросов
+    def update_question(self):
         tokens = []
         tokens.append(self.combo40.currentText())
         tokens.append(self.combo41.currentText())
@@ -1793,11 +1826,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         tokens.append(self.combo45.currentText())
         tokens.append(self.combo46.currentText())
         tokens.append(self.combo47.currentText())
-        self.UT = UpdateToken(tokens, self.user)
+        self.UT = UpdateQuestion(tokens, self.user)
         self.UT.show()
 
-    # окно удаления билетов
-    def delete_token_Ui(self):
+    # окно удаления вопросов
+    def delete_question_Ui(self):
         if self.user[4] != None:
             teacher = []
             teacher.append(self.user[4])
@@ -1975,11 +2008,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         vlayout15 = QVBoxLayout(self)
         vlayout15.addLayout(vlayout14)
         vlayout15.addWidget(self.delete_t)
-        self.tabWidget.setTabText(5, "DeleteT")
-        self.delete_token_.setLayout(vlayout15)
+        self.tabWidget.setTabText(5, "DeleteQ")
+        self.delete_question_.setLayout(vlayout15)
 
-    # открыть класс с удалением билетов
-    def delete_token(self):
+    # открыть класс с удалением вопросов
+    def delete_question(self):
         tokens = []
         tokens.append(self.combo50.currentText())
         tokens.append(self.combo51.currentText())
@@ -1989,7 +2022,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         tokens.append(self.combo55.currentText())
         tokens.append(self.combo56.currentText())
         tokens.append(self.combo57.currentText())
-        self.DT = DeleteToken(tokens)
+        self.DT = DeleteQuestion(tokens)
         self.DT.show()
 
     # переключение режима экрана (оконный/полноэкранный)
@@ -2379,6 +2412,149 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         vlayout12.addWidget(self.output_v)
         self.tabWidget1.setTabText(2, "Output")
         self.output.setLayout(vlayout12)
+
+    # окно удаления билетов
+    def delete_tokens_Ui(self):
+        role_id = []
+        role_id.append(self.user[3])
+        sel_role_name = 'SELECT `name` FROM `roles` WHERE `id` = %s'
+        cursor.execute(sel_role_name, role_id)
+        role_name = cursor.fetchone()[0]
+        if role_name != 'Преподаватель':
+            self.combo60 = QComboBox(self)
+            cursor.execute('SELECT `name` FROM `subjects`')
+            check_sel = cursor.fetchall()
+            for i in range(0, len(check_sel)):
+                self.combo60.addItem(check_sel[i][0])
+            self.combo61 = QComboBox(self)
+            cursor.execute('SELECT `name` FROM `teachers`')
+            check_sel = cursor.fetchall()
+            for i in range(0, len(check_sel)):
+                self.combo61.addItem(check_sel[i][0])
+            self.combo62 = QComboBox(self)
+            cursor.execute('SELECT `name` FROM `groups`')
+            check_sel = cursor.fetchall()
+            for i in range(0, len(check_sel)):
+                self.combo62.addItem(check_sel[i][0])
+            self.combo63 = QComboBox(self)
+            cursor.execute('SELECT `name` FROM `courses`')
+            check_sel = cursor.fetchall()
+            for i in range(0, len(check_sel)):
+                self.combo63.addItem(check_sel[i][0])
+            self.combo64 = QComboBox(self)
+            cursor.execute('SELECT `name` FROM `year_enter`')
+            check_sel = cursor.fetchall()
+            for i in range(0, len(check_sel)):
+                self.combo64.addItem(check_sel[i][0])
+            self.combo65 = QComboBox(self)
+            cursor.execute('SELECT `name` FROM `periods`')
+            check_sel = cursor.fetchall()
+            for i in range(0, len(check_sel)):
+                self.combo65.addItem(check_sel[i][0])
+            hlayout = QHBoxLayout(self)
+            self.tabWidget = QTabWidget(self.centralwidget)
+            hlayout.addWidget(self.label_51)
+            vlayout = QVBoxLayout(self)
+            vlayout.addLayout(hlayout)
+            vlayout.addWidget(self.combo60)
+            vlayout1 = QVBoxLayout(self)
+            vlayout1.addLayout(vlayout)
+            vlayout1.addWidget(self.label_52)
+            vlayout2 = QVBoxLayout(self)
+            vlayout2.addLayout(vlayout1)
+            vlayout2.addWidget(self.combo61)
+            vlayout3 = QVBoxLayout(self)
+            vlayout3.addLayout(vlayout2)
+            vlayout3.addWidget(self.label_53)
+            vlayout4 = QVBoxLayout(self)
+            vlayout4.addLayout(vlayout3)
+            vlayout4.addWidget(self.combo62)
+            vlayout5 = QVBoxLayout(self)
+            vlayout5.addLayout(vlayout4)
+            vlayout5.addWidget(self.label_54)
+            vlayout6 = QVBoxLayout(self)
+            vlayout6.addLayout(vlayout5)
+            vlayout6.addWidget(self.combo63)
+            vlayout7 = QVBoxLayout(self)
+            vlayout7.addLayout(vlayout6)
+            vlayout7.addWidget(self.label_55)
+            vlayout8 = QVBoxLayout(self)
+            vlayout8.addLayout(vlayout7)
+            vlayout8.addWidget(self.combo64)
+            vlayout9 = QVBoxLayout(self)
+            vlayout9.addLayout(vlayout8)
+            vlayout9.addWidget(self.label_56)
+            vlayout10 = QVBoxLayout(self)
+            vlayout10.addLayout(vlayout9)
+            vlayout10.addWidget(self.combo65)
+            vlayout15 = QVBoxLayout(self)
+            vlayout15.addLayout(vlayout10)
+            vlayout15.addWidget(self.delete_token)
+            self.tabWidget.setTabText(7, "DeleteTokens")
+            self.delete_tokens_.setLayout(vlayout15)
+
+    # удаление билтеов
+    def delete_tokens(self):
+        del_data = []
+        del_data.append(self.combo60.currentText())
+        del_data.append(self.combo61.currentText())
+        del_data.append(self.combo62.currentText())
+        del_data.append(self.combo63.currentText())
+        del_data.append(self.combo64.currentText())
+        del_data.append(self.combo65.currentText())
+        sel_id_data = 'SELECT ' \
+                      '(SELECT `id` FROM `subjects` WHERE `name` = %s), ' \
+                      '(SELECT `id` FROM `teachers` WHERE `name` = %s), ' \
+                      '(SELECT `id` FROM `groups` WHERE `name` = %s), ' \
+                      '(SELECT `id` FROM `courses` WHERE `name` = %s), ' \
+                      '(SELECT `id` FROM `year_enter` WHERE `name` = %s), ' \
+                      '(SELECT `id` FROM `periods` WHERE `name` = %s) ' \
+                      'FROM `tokens`'
+        cursor.execute(sel_id_data, del_data)
+        id_data = cursor.fetchone()
+        sel_id_vopr = 'SELECT `id` FROM `tokens` WHERE `subjects_id` = %s AND `teachers_id` = %s AND `groups_id` = %s AND ' \
+                      '`courses_id` = %s AND `year_enter_id` = %s AND `periods_id` = %s'
+        cursor.execute(sel_id_vopr, id_data)
+        id_vopr = cursor.fetchall()
+        exam_date = []
+        right_id_vopr = []
+        for i in range(0, len(id_vopr)):
+            id_ = []
+            id_.append(id_vopr[i][0])
+            sel_date_tokens = 'SELECT `date_exam` FROM `exam_tokens` WHERE `tokens_id` = %s'
+            cursor.execute(sel_date_tokens, id_)
+            date = cursor.fetchone()
+            if date != None:
+                right_id_vopr.append(id_vopr[i][0])
+                if date not in exam_date:
+                    exam_date.append(date[0])
+        if len(exam_date) == 0:
+            self.dlg = QMessageBox()
+            self.dlg.addButton("Ок", QMessageBox.AcceptRole)
+            self.dlg.setIcon(QMessageBox.Information)
+            self.dlg.setWindowTitle("Предупреждение")
+            self.dlg.setInformativeText(
+                "В информационной системе нет сгенерированных билетов!")
+            bttn = self.dlg.exec()
+        else:
+            self.dlg = QMessageBox()
+            self.dlg.addButton("Да", QMessageBox.AcceptRole)
+            self.dlg.addButton("Нет", QMessageBox.AcceptRole)
+            self.dlg.setIcon(QMessageBox.Information)
+            self.dlg.setWindowTitle("Предупреждение")
+            self.dlg.setInformativeText(
+                "Вы уверены что хотите удалить билеты по дисциплине " + str(del_data[0]) + " преподавателя " + str(del_data[1]) +
+                " группы " + str(del_data[2]) + " курса " + str(del_data[3]) + " года поступления " + str(del_data[4]) +
+                " периода " + str(del_data[5]) + " дата экзамена " + str(exam_date[0]))
+            bttn = self.dlg.exec()
+            if self.dlg.clickedButton().text() == "Да":
+                for i in range(0, len(right_id_vopr)):
+                    id_ = []
+                    id_.append(right_id_vopr[i])
+                    id_.append(exam_date[0])
+                    del_token = 'DELETE FROM `exam_tokens` WHERE `tokens_id` = %s AND `date_exam` = %s'
+                    cursor.execute(del_token, id_)
+                    conn.commit()
 
     # сам парсер
     def pars(self):
