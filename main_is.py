@@ -650,6 +650,122 @@ class DeleteQuestion(QtWidgets.QDialog, Ui_DeleteQuestion):
             conn.commit()
 
 
+class Ui_DeleteTokens(QtWidgets.QWidget):
+    def setupUi(self, DeleteTokens):
+        DeleteTokens.setObjectName("DeleteTokens")
+        DeleteTokens.resize(496, 265)
+        self.delete_btn = QtWidgets.QPushButton(DeleteTokens)
+        self.delete_btn.setGeometry(QRect(230, 200, 51, 23))
+        self.delete_btn.setObjectName("delete_btn")
+        self.retranslateUi(DeleteTokens)
+        QtCore.QMetaObject.connectSlotsByName(DeleteTokens)
+
+    def retranslateUi(self, DeleteTokens):
+        _translate = QCoreApplication.translate
+        DeleteTokens.setWindowTitle(_translate("DeleteTokens", "Удаление"))
+        self.delete_btn.setText(_translate("DeleteTokens", "Удалить"))
+
+
+class DeleteTokens(QtWidgets.QDialog, Ui_DeleteTokens):
+    def __init__(self, del_data, parent=None):
+        super(DeleteTokens, self).__init__(parent)
+        self.setupUi(self)
+        self.delete_btn.clicked.connect(self.delete_tokens)
+        self.table = QTableWidget(self)
+        sel_id_data = 'SELECT ' \
+                      '(SELECT `id` FROM `subjects` WHERE `name` = %s), ' \
+                      '(SELECT `id` FROM `teachers` WHERE `name` = %s), ' \
+                      '(SELECT `id` FROM `groups` WHERE `name` = %s), ' \
+                      '(SELECT `id` FROM `courses` WHERE `name` = %s), ' \
+                      '(SELECT `id` FROM `year_enter` WHERE `name` = %s), ' \
+                      '(SELECT `id` FROM `periods` WHERE `name` = %s) ' \
+                      'FROM `tokens`'
+        cursor.execute(sel_id_data, del_data)
+        id_data = cursor.fetchone()
+        sel_id_vopr = 'SELECT `id` FROM `tokens` WHERE `subjects_id` = %s AND `teachers_id` = %s AND `groups_id` = %s AND ' \
+                      '`courses_id` = %s AND `year_enter_id` = %s AND `periods_id` = %s'
+        cursor.execute(sel_id_vopr, id_data)
+        id_vopr = cursor.fetchall()
+        main_id = []
+        for i in range(0, len(id_vopr)):
+            id_ = []
+            id_.append(id_vopr[i][0])
+            sel_date_tokens = 'SELECT `id` FROM `exam_tokens` WHERE `tokens_id` = %s'
+            cursor.execute(sel_date_tokens, id_)
+            id_tokens = cursor.fetchone()
+            if id_tokens != None:
+                if id_tokens not in main_id:
+                    main_id.append(id_tokens[0])
+        right_id = []
+        for i in range(0, len(main_id)):
+            id_ = []
+            id_.append(main_id[i])
+            sel_data_tokens = 'SELECT `id`, `number`, `tokens_id`, `date_exam`, `set` FROM `exam_tokens` WHERE `id` = %s'
+            cursor.execute(sel_data_tokens, id_)
+            right_id.append(cursor.fetchone())
+        self.table.setColumnCount(len(right_id[0]) + 1)
+        self.table.setRowCount(len(right_id))
+        self.table.setHorizontalHeaderLabels(
+            ["Статус", "Номер", "Номер билета", "Задание", "Дата экзамена", "Комплект"])
+        self.table.horizontalHeaderItem(1).setToolTip("Column 1")
+        self.table.horizontalHeaderItem(2).setToolTip("Column 2")
+        self.table.horizontalHeaderItem(3).setToolTip("Column 3")
+        self.table.horizontalHeaderItem(4).setToolTip("Column 4")
+        self.table.horizontalHeaderItem(5).setToolTip("Column 5")
+        self.table.horizontalHeaderItem(1).setTextAlignment(Qt.AlignHCenter)
+        self.table.horizontalHeaderItem(2).setTextAlignment(Qt.AlignHCenter)
+        self.table.horizontalHeaderItem(3).setTextAlignment(Qt.AlignHCenter)
+        self.table.horizontalHeaderItem(4).setTextAlignment(Qt.AlignHCenter)
+        self.table.horizontalHeaderItem(5).setTextAlignment(Qt.AlignHCenter)
+        for i in range(0, len(right_id)):
+            v_id = []
+            v_id.append(right_id[i][0])
+            v_id.append(right_id[i][1])
+            v_id.append(right_id[i][2])
+            v_id.append(right_id[i][3])
+            v_id.append(right_id[i][4])
+            token_task_id = []
+            token_task_id.append(right_id[i][2])
+            sel_task_id = 'SELECT `tasks_id` FROM `tokens` WHERE `id` = %s'
+            cursor.execute(sel_task_id, token_task_id)
+            tasks_id = cursor.fetchone()
+            sel_name_tasks = 'SELECT `name` FROM `tasks` WHERE `id` = %s'
+            cursor.execute(sel_name_tasks, tasks_id)
+            name_tasks = cursor.fetchone()[0]
+            for j in range(0, len(v_id)):
+                if j == 2:
+                    item = QTableWidgetItem(str(name_tasks))
+                    item.setFlags(QtCore.Qt.ItemIsEnabled)
+                    self.table.setItem(i, j + 1, item)
+                else:
+                    item = QTableWidgetItem(str(v_id[j]))
+                    item.setFlags(QtCore.Qt.ItemIsEnabled)
+                    self.table.setItem(i, j+1, item)
+            widget = QWidget()
+            checkbox = QCheckBox()
+            checkbox.setCheckState(Qt.Unchecked)
+            layoutH = QHBoxLayout(widget)
+            layoutH.addWidget(checkbox)
+            layoutH.setAlignment(Qt.AlignCenter)
+            layoutH.setContentsMargins(0, 0, 0, 0)
+            self.table.setCellWidget(i, 0, widget)
+        vlayout = QVBoxLayout(self)
+        vlayout.addWidget(self.table)
+        vlayout.addWidget(self.delete_btn)
+
+    def delete_tokens(self):
+        checked_list = []
+        for i in range(self.table.rowCount()):
+            if self.table.cellWidget(i, 0).findChild(type(QCheckBox())).isChecked():
+                checked_list.append(self.table.item(i, 1).text())
+        for i in range(0, len(checked_list)):
+            id_ = []
+            id_.append(checked_list[i])
+            del_token = 'DELETE FROM `exam_tokens` WHERE `id` = %s'
+            cursor.execute(del_token, id_)
+            conn.commit()
+
+
 class Ui_OptionsDB(QtWidgets.QWidget):
     def setupUi(self, OptionsDB):
         OptionsDB.setObjectName("OptionsDB")
@@ -1308,7 +1424,7 @@ class Ui_MainWindow(QtWidgets.QWidget):
         self.label_2.setText(_translate("MainWindow", "Укажите путь к файлу:"))
         self.label_1.setText(_translate("MainWindow", "Выберите дисциплину:"))
         # кнопки (button)
-        self.delete_token.setText(_translate("MainWindow", "Удалить"))
+        self.delete_token.setText(_translate("MainWindow", "Просмотреть"))
         self.options_db.setText(_translate("MainWindow", "Настроить базу данных"))
         self.options_users.setText(_translate("MainWindow", "Настроить пользователей"))
         self.delete_t.setText(_translate("MainWindow", "Просмотреть"))
@@ -2495,66 +2611,15 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
     # удаление билтеов
     def delete_tokens(self):
-        del_data = []
-        del_data.append(self.combo60.currentText())
-        del_data.append(self.combo61.currentText())
-        del_data.append(self.combo62.currentText())
-        del_data.append(self.combo63.currentText())
-        del_data.append(self.combo64.currentText())
-        del_data.append(self.combo65.currentText())
-        sel_id_data = 'SELECT ' \
-                      '(SELECT `id` FROM `subjects` WHERE `name` = %s), ' \
-                      '(SELECT `id` FROM `teachers` WHERE `name` = %s), ' \
-                      '(SELECT `id` FROM `groups` WHERE `name` = %s), ' \
-                      '(SELECT `id` FROM `courses` WHERE `name` = %s), ' \
-                      '(SELECT `id` FROM `year_enter` WHERE `name` = %s), ' \
-                      '(SELECT `id` FROM `periods` WHERE `name` = %s) ' \
-                      'FROM `tokens`'
-        cursor.execute(sel_id_data, del_data)
-        id_data = cursor.fetchone()
-        sel_id_vopr = 'SELECT `id` FROM `tokens` WHERE `subjects_id` = %s AND `teachers_id` = %s AND `groups_id` = %s AND ' \
-                      '`courses_id` = %s AND `year_enter_id` = %s AND `periods_id` = %s'
-        cursor.execute(sel_id_vopr, id_data)
-        id_vopr = cursor.fetchall()
-        exam_date = []
-        right_id_vopr = []
-        for i in range(0, len(id_vopr)):
-            id_ = []
-            id_.append(id_vopr[i][0])
-            sel_date_tokens = 'SELECT `date_exam` FROM `exam_tokens` WHERE `tokens_id` = %s'
-            cursor.execute(sel_date_tokens, id_)
-            date = cursor.fetchone()
-            if date != None:
-                right_id_vopr.append(id_vopr[i][0])
-                if date not in exam_date:
-                    exam_date.append(date[0])
-        if len(exam_date) == 0:
-            self.dlg = QMessageBox()
-            self.dlg.addButton("Ок", QMessageBox.AcceptRole)
-            self.dlg.setIcon(QMessageBox.Information)
-            self.dlg.setWindowTitle("Предупреждение")
-            self.dlg.setInformativeText(
-                "В информационной системе нет сгенерированных билетов!")
-            bttn = self.dlg.exec()
-        else:
-            self.dlg = QMessageBox()
-            self.dlg.addButton("Да", QMessageBox.AcceptRole)
-            self.dlg.addButton("Нет", QMessageBox.AcceptRole)
-            self.dlg.setIcon(QMessageBox.Information)
-            self.dlg.setWindowTitle("Предупреждение")
-            self.dlg.setInformativeText(
-                "Вы уверены что хотите удалить билеты по дисциплине " + str(del_data[0]) + " преподавателя " + str(del_data[1]) +
-                " группы " + str(del_data[2]) + " курса " + str(del_data[3]) + " года поступления " + str(del_data[4]) +
-                " периода " + str(del_data[5]) + " дата экзамена " + str(exam_date[0]))
-            bttn = self.dlg.exec()
-            if self.dlg.clickedButton().text() == "Да":
-                for i in range(0, len(right_id_vopr)):
-                    id_ = []
-                    id_.append(right_id_vopr[i])
-                    id_.append(exam_date[0])
-                    del_token = 'DELETE FROM `exam_tokens` WHERE `tokens_id` = %s AND `date_exam` = %s'
-                    cursor.execute(del_token, id_)
-                    conn.commit()
+        tokens = []
+        tokens.append(self.combo60.currentText())
+        tokens.append(self.combo61.currentText())
+        tokens.append(self.combo62.currentText())
+        tokens.append(self.combo63.currentText())
+        tokens.append(self.combo64.currentText())
+        tokens.append(self.combo65.currentText())
+        self.DT = DeleteTokens(tokens)
+        self.DT.show()
 
     # сам парсер
     def pars(self):
