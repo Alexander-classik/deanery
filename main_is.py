@@ -782,6 +782,18 @@ class Ui_OptionsDB(QtWidgets.QWidget):
         self.db_line = QtWidgets.QLineEdit(OptionsDB)
         self.db_line.setGeometry(QtCore.QRect(10, 130, 221, 25))
         self.db_line.setObjectName("db_line")
+        self.label = QLabel(OptionsDB)
+        self.label.setGeometry(QRect(190, 10, 211, 51))
+        self.label.setObjectName("label")
+        self.label1 = QLabel(OptionsDB)
+        self.label1.setGeometry(QRect(190, 10, 211, 51))
+        self.label1.setObjectName("label1")
+        self.label2 = QLabel(OptionsDB)
+        self.label2.setGeometry(QRect(190, 10, 211, 51))
+        self.label2.setObjectName("label2")
+        self.label3 = QLabel(OptionsDB)
+        self.label3.setGeometry(QRect(190, 10, 211, 51))
+        self.label3.setObjectName("label3")
         self.save_btn = QtWidgets.QPushButton(OptionsDB)
         self.save_btn.setGeometry(QtCore.QRect(30, 150, 241, 55))
         self.save_btn.setObjectName("save_btn")
@@ -791,10 +803,10 @@ class Ui_OptionsDB(QtWidgets.QWidget):
     def retranslateUi(self, OptionsDB):
         _translate = QCoreApplication.translate
         OptionsDB.setWindowTitle(_translate("OptionsDB", "Конфигурация базы данных"))
-        self.name_line.setText(_translate("OptionsDB", "Логин:"))
-        self.pass_line.setText(_translate("OptionsDB", "Пароль:"))
-        self.host_line.setText(_translate("OptionsDB", "Хост:"))
-        self.db_line.setText(_translate("OptionsDB", "База данных:"))
+        self.label.setText(_translate("OptionsDB", "Логин:"))
+        self.label1.setText(_translate("OptionsDB", "Пароль:"))
+        self.label2.setText(_translate("OptionsDB", "Хост:"))
+        self.label3.setText(_translate("OptionsDB", "База данных:"))
         self.save_btn.setText(_translate("OptionsDB", "Сохранить"))
 
 
@@ -803,16 +815,20 @@ class OptionsDB(QtWidgets.QDialog, Ui_OptionsDB):
         super(OptionsDB, self).__init__(parent)
         self.setupUi(self)
         vl = QVBoxLayout(self)
+        vl.addWidget(self.label)
         vl.addWidget(self.name_line)
+        vl.addWidget(self.label1)
         vl.addWidget(self.pass_line)
+        vl.addWidget(self.label2)
         vl.addWidget(self.host_line)
+        vl.addWidget(self.label3)
         vl.addWidget(self.db_line)
         vl.addWidget(self.save_btn)
         self.save_btn.clicked.connect(self.save_)
 
     def save_(self):
-        data = {'login': self.name_line.text(), 'password': self.pass_line.text(), 'host': self.host_line.text(), 'name_db': self.db_line.text()}
-        with open('config_db.json', 'w') as save:
+        data = [{'login': self.name_line.text(), 'password': self.pass_line.text(), 'host': self.host_line.text(), 'name_db': self.db_line.text()}]
+        with open(config[0]['config_db']+'/config_db.json', 'w') as save:
             json.dump(data, save)
 
 
@@ -2747,6 +2763,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 result = []
             else:
                 result = []
+
         # Парс БИЛЕТОВ
         for i in range(0, len(df['Дисциплины'].tolist())):
             add_ser = 'INSERT INTO `tokens` (`subjects_id`, `tasks_id`, `blocks_id`, `type_tasks_id`, `teachers_id`, ' \
@@ -3360,8 +3377,16 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
+    app.setStyle('Fusion')
+    splash = QtWidgets.QSplashScreen()
+    splash.setPixmap(QtGui.QPixmap('images/splash.jpg'))
+    splash.show()
+    splash.showMessage('<h1 style="color:#ffffff;">Добро пожаловать в ИС Деканат (beta)</h1>',
+                       QtCore.Qt.AlignTop | QtCore.Qt.AlignLeft, QtCore.Qt.white)
+    QtCore.QThread.msleep(5000)
     w = Login()
     w.show()
+    splash.hide()
     sys.exit(app.exec_())
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++

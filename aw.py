@@ -539,6 +539,32 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         conn.commit()
         cursor.execute('create table if not exists `users` (id int primary key auto_increment, login text, `password` text, roles_id int, teachers_id int, foreign key (roles_id) references `roles` (id), foreign key (teachers_id) references teachers (id))')
         conn.commit()
+        cursor.execute('create table if not exists `students` (id int primary key auto_increment, `name` text, `groups_id` int, `courses_id` int, `year_enter_id` int, foreign key (`groups_id`) references `groups` (id), foreign key (`courses_id`) references `courses` (id), foreign key (`year_enter_id`) references `year_enter` (id))')
+        conn.commit()
+        cursor.execute('create table if not exists `num_lessons` (id int primary key auto_increment, `name` text)')
+        conn.commit()
+        cursor.execute('create table if not exists `name_day` (id int primary key auto_increment, `name` text)')
+        conn.commit()
+        cursor.execute('create table if not exists `type_week` (id int primary key auto_increment, `name` text)')
+        conn.commit()
+        cursor.execute('create table if not exists `date_type_week` (id int primary key auto_increment, `type_week_id` int, `date_week` date, foreign key (`type_week_id`) references `type_week` (id))')
+        conn.commit()
+        cursor.execute(
+            'create table if not exists `schedule` (id int primary key auto_increment, `subjects_id` int, `teachers_id` int, `groups_id` int, `courses_id` int, `year_enter_id` int, `num_lessons_id` int, `name_day_id` int, `type_week_id` int, foreign key (`subjects_id`) references `subjects` (id), foreign key (`teachers_id`) references `teachers` (id), foreign key (`groups_id`) references `groups` (id), foreign key (`courses_id`) references `courses` (id), foreign key (`year_enter_id`) references `year_enter` (id), foreign key (`num_lessons_id`) references `num_lessons` (id), foreign key (`name_day_id`) references `name_day` (id), foreign key (`type_week_id`) references `type_week` (id))')
+        conn.commit()
+        cursor.execute(
+            'create table if not exists `schedule_changes` (id int primary key auto_increment, `groups_id` int, `courses_id` int, `year_enter_id` int, `num_lessons_id` int, `subjects_id` int, `teachers_id` int, `date_changes` date, foreign key (`groups_id`) references `groups` (id), foreign key (`courses_id`) references `courses` (id), foreign key (`year_enter_id`) references `year_enter` (id), foreign key (`num_lessons_id`) references `num_lessons` (id), foreign key (`subjects_id`) references `subjects` (id), foreign key (`teachers_id`) references `teachers` (id))')
+        conn.commit()
+        type_week_arr = ['числитель', 'знаменатель']
+        for i in range(0, len(type_week_arr)):
+            type_week_name = []
+            type_week_name.append(type_week_arr[i])
+            sel_role_name = 'SELECT EXISTS(SELECT id FROM `type_week` WHERE `name` = %s)'
+            cursor.execute(sel_role_name, type_week_name)
+            if cursor.fetchone()[0] == False:
+                in_type_week = 'INSERT INTO `type_week` (`name`) VALUES (%s)'
+                cursor.execute(in_type_week, type_week_name)
+                conn.commit()
         roles_arr = ['Преподаватель', 'Учебная часть', 'Администратор']
         for i in range(0, len(roles_arr)):
             role_name = []
@@ -591,8 +617,16 @@ def is_admin():
 if is_admin():
     if __name__ == "__main__":
         app = QtWidgets.QApplication(sys.argv)
+        app.setStyle('Fusion')
+        splash = QtWidgets.QSplashScreen()
+        splash.setPixmap(QtGui.QPixmap('images/splash1.jpg'))
+        splash.show()
+        splash.showMessage('<h1 style="color:#000c36;">Добро пожаловать в АРМ Деканат (beta)</h1>',
+                           QtCore.Qt.AlignTop | QtCore.Qt.AlignLeft, QtCore.Qt.white)
+        QtCore.QThread.msleep(5000)
         w = MainWindow()
         w.show()
+        splash.hide()
         sys.exit(app.exec_())
 else:
     ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, __file__, None, 1)
