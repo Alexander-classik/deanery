@@ -12,7 +12,8 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QDialog, QApplication, QFileDialog, \
     QPushButton, QMainWindow, QLabel
 from PyQt5 import QtCore, QtGui
-from PyQt5.QtWidgets import (QStyleFactory, QLabel, QPushButton, QPlainTextEdit, QApplication, QCheckBox, QMainWindow, QWidget,
+from PyQt5.QtWidgets import (QStyleFactory, QLabel, QPushButton, QPlainTextEdit, QApplication, QCheckBox, QMainWindow,
+                             QWidget,
                              QVBoxLayout, QTabWidget)
 from PyQt5.QtWidgets import QComboBox
 from PyQt5.QtWidgets import *
@@ -90,7 +91,8 @@ class UploadUsers(QtWidgets.QDialog, Ui_UploadUsers):
         self.list = []
 
         # Подключение к БД
-        conn = mysql.connector.connect(user=json_db[0]['login'], password=json_db[0]['password'], host=json_db[0]['host'],
+        conn = mysql.connector.connect(user=json_db[0]['login'], password=json_db[0]['password'],
+                                       host=json_db[0]['host'],
                                        database=json_db[0]['name_db'])
         cursor = conn.cursor(buffered=True)
         df = pd.read_excel(io=self.file_, engine='openpyxl', sheet_name='Лист1')
@@ -180,16 +182,41 @@ class UploadUsers(QtWidgets.QDialog, Ui_UploadUsers):
     def output_user(self):
         doc = aw.Document()
         builder = aw.DocumentBuilder(doc)
+        table = builder.start_table()
+        builder.insert_cell()
+        table.left_indent = 20.0
+        builder.row_format.height = 40.0
+        builder.row_format.height_rule = aw.HeightRule.AT_LEAST
+        builder.paragraph_format.alignment = aw.ParagraphAlignment.CENTER
+        builder.font.size = 16
+        builder.font.name = "Times New Romans"
+        builder.font.bold = True
+        builder.cell_format.width = 100.0
+        builder.write("ФИО\n сотрудника")
+        builder.insert_cell()
+        builder.write("Логин")
+        builder.insert_cell()
+        builder.cell_format.width = 100.0
+        builder.write("Пароль")
+        builder.end_row()
+        builder.cell_format.width = 100.0
+        builder.cell_format.vertical_alignment = aw.tables.CellVerticalAlignment.CENTER
+        builder.row_format.height = 30.0
+        builder.row_format.height_rule = aw.HeightRule.AUTO
+        builder.insert_cell()
+        builder.font.size = 12
+        builder.font.bold = False
         with open('config_db.json', encoding="utf8") as save:
             json_db = json.load(save)
 
         # Подключение к БД
-        conn = mysql.connector.connect(user=json_db[0]['login'], password=json_db[0]['password'], host=json_db[0]['host'],
+        conn = mysql.connector.connect(user=json_db[0]['login'], password=json_db[0]['password'],
+                                       host=json_db[0]['host'],
                                        database=json_db[0]['name_db'])
         cursor = conn.cursor(buffered=True)
+        result = []
         for n in range(0, len(self.list)):
             data = []
-            result = []
             login = []
             login.append(self.list[n][0])
             sel_uchet = 'SELECT `login`, `password` FROM `users` WHERE `login` = %s'
@@ -199,10 +226,17 @@ class UploadUsers(QtWidgets.QDialog, Ui_UploadUsers):
                 data.append(data_uch[i])
             data.append(self.list[n][1])
             result.append(data)
-            for g in range(0, len(result)):
-                builder.writeln("Сотрудник: " + str(result[g][2]))
-                builder.writeln("Логин: " + str(result[g][0]))
-                builder.writeln("Пароль: " + str(result[g][1]))
+        for g in range(0, len(result)):
+            builder.cell_format.width = 100.0
+            builder.write(str(result[g][2]))
+            builder.insert_cell()
+            builder.write(str(result[g][0]))
+            builder.insert_cell()
+            builder.write(str(result[g][1]))
+            builder.end_row()
+            if g < len(result) - 1:
+                builder.insert_cell()
+        builder.end_table()
         doc.save('Логины и пароли.docx')
 
     def pars_win(self):
@@ -255,7 +289,8 @@ class CreateAdmin(QtWidgets.QDialog, Ui_CreateAdmin):
             json_db = json.load(save)
 
         # Подключение к БД
-        conn = mysql.connector.connect(user=json_db[0]['login'], password=json_db[0]['password'], host=json_db[0]['host'],
+        conn = mysql.connector.connect(user=json_db[0]['login'], password=json_db[0]['password'],
+                                       host=json_db[0]['host'],
                                        database=json_db[0]['name_db'])
         cursor = conn.cursor(buffered=True)
         data.append(self.login_line.text())
@@ -356,7 +391,8 @@ class OptionsDB(QtWidgets.QDialog, Ui_OptionsDB):
 
     def save_(self):
         if self.check_save():
-            data = [{'login': self.name_line.text(), 'password': self.pass_line.text(), 'host': self.host_line.text(), 'name_db': self.db_line.text()}]
+            data = [{'login': self.name_line.text(), 'password': self.pass_line.text(), 'host': self.host_line.text(),
+                     'name_db': self.db_line.text()}]
             with open('config_db.json', 'w') as save:
                 json.dump(data, save)
         else:
@@ -401,7 +437,8 @@ class Ui_OptionsFiles(QtWidgets.QWidget):
         OptionsFiles.setWindowTitle(_translate("OptionsFiles", "Конфигурация базы данных"))
         self.open_win_path_conf_db.setText(_translate("OptionsFiles", "Обзор..."))
         self.save_path_conf_db.setText(_translate("OptionsFiles", "Сохранить"))
-        self.label_2.setText(_translate("OptionsFiles", "Укажите пути куда будет перемещён файл конфигураций базы данных"))
+        self.label_2.setText(
+            _translate("OptionsFiles", "Укажите путь куда будет перемещён файл конфигураций базы данных"))
 
 
 class OptionsFiles(QtWidgets.QDialog, Ui_OptionsFiles):
@@ -506,13 +543,16 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         with open('config_db.json', encoding="utf8") as save:
             json_db = json.load(save)
         # Подключение к БД
-        conn = mysql.connector.connect(user=json_db[0]['login'], password=json_db[0]['password'], host=json_db[0]['host'],
+        conn = mysql.connector.connect(user=json_db[0]['login'], password=json_db[0]['password'],
+                                       host=json_db[0]['host'],
                                        database=json_db[0]['name_db'])
         return conn
 
     def uploadDB(self):
         conn = self.connectDB()
         cursor = conn.cursor(buffered=True)
+        cursor.execute('create table `organization` (id int primary key auto_increment, `name` text)')
+        conn.commit()
         cursor.execute('create table if not exists `subjects` (id int primary key auto_increment, `name` text)')
         conn.commit()
         cursor.execute('create table if not exists `year_enter` (id int primary key auto_increment, `name` text)')
@@ -533,13 +573,31 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         conn.commit()
         cursor.execute('create table if not exists `roles` (id int primary key auto_increment, `name` text)')
         conn.commit()
-        cursor.execute('create table if not exists `tokens` (id int primary key auto_increment, `subjects_id` int, `tasks_id` int, `type_tasks_id` int, `teachers_id` int, `groups_id` int, `courses_id` int, `year_enter_id` int, `periods_id` int, `blocks_id` int, foreign key (subjects_id) references subjects (id), foreign key (tasks_id) references tasks (id), foreign key (type_tasks_id) references type_tasks (id), foreign key (teachers_id) references teachers (id), foreign key (groups_id) references `groups` (id), foreign key (courses_id) references courses (id), foreign key (year_enter_id) references year_enter (id), foreign key (periods_id) references periods (id), foreign key (blocks_id) references blocks (id))')
+        cursor.execute('create table if not exists `tokens` (id int primary key auto_increment, `subjects_id` int, '
+                       '`tasks_id` int, `type_tasks_id` int, `teachers_id` int, `groups_id` int, `courses_id` int, '
+                       '`year_enter_id` int, `periods_id` int, `blocks_id` int, `organization_id` int, foreign key ('
+                       'subjects_id) references subjects (id), foreign key (tasks_id) references tasks (id), '
+                       'foreign key (type_tasks_id) references type_tasks (id), foreign key (teachers_id) references '
+                       'teachers (id), foreign key (groups_id) references `groups` (id), foreign key (courses_id) '
+                       'references courses (id), foreign key (year_enter_id) references year_enter (id), foreign key '
+                       '(periods_id) references periods (id), foreign key (blocks_id) references blocks (id), '
+                       'foreign key (organization_id) references organization (id))')
         conn.commit()
-        cursor.execute('create table if not exists `exam_tokens` (id int primary key auto_increment, `number` text, `tokens_id` int, `date_exam` date, `set` varchar(3), foreign key (tokens_id) references tokens (id))')
+        cursor.execute('create table if not exists `exam_tokens` (id int primary key auto_increment, `number` text, '
+                       '`tokens_id` int, `date_exam` date, `set` varchar(3), foreign key (tokens_id) references '
+                       'tokens (id))')
         conn.commit()
-        cursor.execute('create table if not exists `users` (id int primary key auto_increment, login text, `password` text, roles_id int, teachers_id int, foreign key (roles_id) references `roles` (id), foreign key (teachers_id) references teachers (id))')
+        cursor.execute(
+            'create table if not exists `users` (id int primary key auto_increment, login text, `password` text, '
+            'roles_id int, teachers_id int, foreign key (roles_id) references `roles` (id), foreign key (teachers_id) '
+            'references teachers (id))')
         conn.commit()
-        cursor.execute('create table if not exists `students` (id int primary key auto_increment, `name` text, `groups_id` int, `courses_id` int, `year_enter_id` int, foreign key (`groups_id`) references `groups` (id), foreign key (`courses_id`) references `courses` (id), foreign key (`year_enter_id`) references `year_enter` (id))')
+        cursor.execute(
+            'create table if not exists `students` (id int primary key auto_increment, `name` text, '
+            '`number_stud_tiket` varchar(5), `groups_id` int, `courses_id` int, `year_enter_id` int, '
+            '`organization_id` int, foreign key (`groups_id`) references `groups` (id), foreign key (`courses_id`) '
+            'references `courses` (id), foreign key (`year_enter_id`) references `year_enter` (id), foreign key ('
+            '`organization_id`) references `organization` (`id`))')
         conn.commit()
         cursor.execute('create table if not exists `num_lessons` (id int primary key auto_increment, `name` text)')
         conn.commit()
@@ -547,14 +605,42 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         conn.commit()
         cursor.execute('create table if not exists `type_week` (id int primary key auto_increment, `name` text)')
         conn.commit()
-        cursor.execute('create table if not exists `date_type_week` (id int primary key auto_increment, `type_week_id` int, `date_week` date, foreign key (`type_week_id`) references `type_week` (id))')
+        cursor.execute(
+            'create table if not exists `date_type_week` (id int primary key auto_increment, `type_week_id` int, '
+            '`date_week` date, foreign key (`type_week_id`) references `type_week` (id))')
         conn.commit()
         cursor.execute(
-            'create table if not exists `schedule` (id int primary key auto_increment, `subjects_id` int, `teachers_id` int, `groups_id` int, `courses_id` int, `year_enter_id` int, `num_lessons_id` int, `name_day_id` int, `type_week_id` int, foreign key (`subjects_id`) references `subjects` (id), foreign key (`teachers_id`) references `teachers` (id), foreign key (`groups_id`) references `groups` (id), foreign key (`courses_id`) references `courses` (id), foreign key (`year_enter_id`) references `year_enter` (id), foreign key (`num_lessons_id`) references `num_lessons` (id), foreign key (`name_day_id`) references `name_day` (id), foreign key (`type_week_id`) references `type_week` (id))')
+            'create table if not exists `schedule` (id int primary key auto_increment, `subjects_id` int, '
+            '`teachers_id` int, `groups_id` int, `courses_id` int, `year_enter_id` int, `num_lessons_id` int, '
+            '`name_day_id` int, `type_week_id` int, `organization_id` int, foreign key (`subjects_id`) references '
+            '`subjects` (id), foreign key (`teachers_id`) references `teachers` (id), foreign key (`groups_id`) '
+            'references `groups` (id), foreign key (`courses_id`) references `courses` (id), foreign key ('
+            '`year_enter_id`) references `year_enter` (id), foreign key (`num_lessons_id`) references `num_lessons` ('
+            'id), foreign key (`name_day_id`) references `name_day` (id), foreign key (`type_week_id`) references '
+            '`type_week` (id), foreign key (`organization_id`) references `organization` (id))')
         conn.commit()
         cursor.execute(
-            'create table if not exists `schedule_changes` (id int primary key auto_increment, `groups_id` int, `courses_id` int, `year_enter_id` int, `num_lessons_id` int, `subjects_id` int, `teachers_id` int, `date_changes` date, foreign key (`groups_id`) references `groups` (id), foreign key (`courses_id`) references `courses` (id), foreign key (`year_enter_id`) references `year_enter` (id), foreign key (`num_lessons_id`) references `num_lessons` (id), foreign key (`subjects_id`) references `subjects` (id), foreign key (`teachers_id`) references `teachers` (id))')
+            'create table if not exists `schedule_changes` (id int primary key auto_increment, `groups_id` int, '
+            '`courses_id` int, `year_enter_id` int, `num_lessons_id` int, `subjects_id` int, `teachers_id` int, '
+            '`date_changes` date, `organization_id` int, foreign key (`groups_id`) references `groups` (id), '
+            'foreign key (`courses_id`) references `courses` (id), foreign key (`year_enter_id`) references '
+            '`year_enter` (id), foreign key (`num_lessons_id`) references `num_lessons` (id), foreign key ('
+            '`subjects_id`) references `subjects` (id), foreign key (`teachers_id`) references `teachers` (id), '
+            'foreign key (`organization_id`) references `organization` (id))')
         conn.commit()
+        cursor.execute(
+            'create table if not exists `lessons_plan` (id int primary key auto_increment, `subjects_id` int, '
+            '`groups_id` int, `courses_id` int, `year_enter_id` int, `number` int, `organization_id` int, foreign key '
+            '(`subjects_id`) references `subjects` (`id`), foreign key (`groups_id`) references `groups` (`id`), '
+            'foreign key (`courses_id`) references `courses` (`id`), foreign key (`year_enter_id`) references '
+            '`year_enter` (`id`), foreign key (`organization_id`) references `organization` (`id`))')
+        conn.commit()
+        cursor.execute(
+            'create table if not exists `completed_classes` (id int primary key auto_increment, `lessons_plan_id` '
+            'int, `teachers_id` int, `number` int, foreign key (`lessons_plan_id`) references `lessons_plan` (`id`), '
+            'foreign key (`teachers_id`) references `teachers` (`id`))')
+        conn.commit()
+
         type_week_arr = ['числитель', 'знаменатель']
         for i in range(0, len(type_week_arr)):
             type_week_name = []
@@ -592,7 +678,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 self.CA = CreateAdmin(self)
                 self.CA.show()
             elif self.dlg.clickedButton().text() == "Автоматически":
-                cursor.execute("INSERT INTO `users` (`login`, `password`, `roles_id`, `teachers_id`) VALUES ('admin', 'admin1', %s, NULL)", id_role_admin)
+                cursor.execute(
+                    "INSERT INTO `users` (`login`, `password`, `roles_id`, `teachers_id`) VALUES ('admin', 'admin1', %s, NULL)",
+                    id_role_admin)
                 conn.commit()
                 self.dlg = QMessageBox()
                 self.dlg.addButton("Ок", QMessageBox.AcceptRole)

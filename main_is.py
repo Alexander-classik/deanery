@@ -19,12 +19,12 @@ from PyQt5.Qt import *
 with open('config_path.json', encoding="utf8") as conf:
     config = json.load(conf)
 
-with open(config[0]['config_db']+'/config_db.json', encoding="utf8") as save:
+with open(config[0]['config_db'] + '/config_db.json', encoding="utf8") as save:
     json_db = json.load(save)
 
 # Подключение к БД
 conn = mysql.connector.connect(user=json_db[0]['login'], password=json_db[0]['password'], host=json_db[0]['host'],
-                                   database=json_db[0]['name_db'])
+                               database=json_db[0]['name_db'])
 cursor = conn.cursor(buffered=True)
 
 
@@ -280,6 +280,7 @@ class UpdateQuestion(QtWidgets.QDialog, Ui_UpdateQuestion):
         per_name = []
         tt_name = []
         bl_name = []
+        org_name = []
         sub_name.append(data[0])
         tea_name.append(data[1])
         gr_name.append(data[2])
@@ -288,6 +289,7 @@ class UpdateQuestion(QtWidgets.QDialog, Ui_UpdateQuestion):
         per_name.append(data[5])
         tt_name.append(data[6])
         bl_name.append(data[7])
+        org_name.append(data[8])
         id_data = []
         sel_sub = 'SELECT `id` FROM `subjects` WHERE `name` = %s'
         cursor.execute(sel_sub, sub_name)
@@ -313,10 +315,13 @@ class UpdateQuestion(QtWidgets.QDialog, Ui_UpdateQuestion):
         sel_bl = 'SELECT `id` FROM `blocks` WHERE `name` = %s'
         cursor.execute(sel_bl, bl_name)
         id_data.append(cursor.fetchone()[0])
+        sel_org = 'SELECT `id` FROM `organization` WHERE `name` = %s'
+        cursor.execute(sel_org, org_name)
+        id_data.append(cursor.fetchone()[0])
         main_id = []
         sel_main_id = 'SELECT `id` FROM `tokens` WHERE `subjects_id` = %s AND `teachers_id` = %s AND `groups_id` = %s AND ' \
                       '`courses_id` = %s AND `year_enter_id` = %s AND `periods_id` = %s AND `type_tasks_id` = %s AND ' \
-                      '`blocks_id` = %s'
+                      '`blocks_id` = %s AND `organization_id` = %s'
         cursor.execute(sel_main_id, id_data)
         id_ = cursor.fetchall()
         for i in range(0, len(id_)):
@@ -336,7 +341,7 @@ class UpdateQuestion(QtWidgets.QDialog, Ui_UpdateQuestion):
         self.table.setRowCount(len(vopr_id))
         self.table.setHorizontalHeaderLabels(
             ["Номер", "Дисциплина", "Задание", "Тип задания", "Преподаватель", "Группа",
-             "Курсы", "Год поступления", "Период", "Раздел"])
+             "Курсы", "Год поступления", "Период", "Раздел", "ОО"])
         for i in range(0, len(vopr_id)):
             v_id = []
             v_id.append(vopr_id[i][0])
@@ -349,6 +354,7 @@ class UpdateQuestion(QtWidgets.QDialog, Ui_UpdateQuestion):
             v_id.append(vopr_id[i][7])
             v_id.append(vopr_id[i][8])
             v_id.append(vopr_id[i][9])
+            v_id.append(vopr_id[i][10])
             sel_vopr_name = 'SELECT ' \
                             '(SELECT `id` FROM `tokens` WHERE `id` = %s), ' \
                             '(SELECT `name` FROM `subjects` WHERE `id` = %s), ' \
@@ -359,7 +365,8 @@ class UpdateQuestion(QtWidgets.QDialog, Ui_UpdateQuestion):
                             '(SELECT `name` FROM `courses` WHERE `id` = %s), ' \
                             '(SELECT `name` FROM `year_enter` WHERE `id` = %s), ' \
                             '(SELECT `name` FROM `periods` WHERE `id` = %s), ' \
-                            '(SELECT `name` FROM `blocks` WHERE `id` = %s) ' \
+                            '(SELECT `name` FROM `blocks` WHERE `id` = %s), ' \
+                            '(SELECT `name` FROM `organization` WHERE `id` = %s) ' \
                             'FROM `tokens`'
             cursor.execute(sel_vopr_name, v_id)
             vopr = cursor.fetchone()
@@ -455,23 +462,33 @@ class UpdateQuestion(QtWidgets.QDialog, Ui_UpdateQuestion):
                 in_bl = 'INSERT INTO `blocks` (`name`) VALUES (%s)'
                 cursor.execute(in_bl, bl_name)
                 conn.commit()
+            check_org = 'SELECT * FROM `organization` WHERE `name` = %s'
+            org_name = []
+            org_name.append(tb_data[10])
+            cursor.execute(check_org, org_name)
+            org_id = cursor.fetchone()
+            if org_id == None:
+                in_org = 'INSERT INTO `organization` (`name`) VALUES (%s)'
+                cursor.execute(in_org, org_name)
+                conn.commit()
             sel_id = 'SELECT ' \
-                    '(SELECT `id` FROM `tokens` WHERE `id` = %s), ' \
-                    '(SELECT `id` FROM `subjects` WHERE `name` = %s), ' \
-                    '(SELECT `id` FROM `tasks` WHERE `name` = %s), ' \
-                    '(SELECT `id` FROM `type_tasks` WHERE `name` = %s), ' \
-                    '(SELECT `id` FROM `teachers` WHERE `name` = %s), ' \
-                    '(SELECT `id` FROM `groups` WHERE `name` = %s), ' \
-                    '(SELECT `id` FROM `courses` WHERE `name` = %s), ' \
-                    '(SELECT `id` FROM `year_enter` WHERE `name` = %s), ' \
-                    '(SELECT `id` FROM `periods` WHERE `name` = %s), ' \
-                    '(SELECT `id` FROM `blocks` WHERE `name` = %s) ' \
-                    'FROM `tokens`'
+                     '(SELECT `id` FROM `tokens` WHERE `id` = %s), ' \
+                     '(SELECT `id` FROM `subjects` WHERE `name` = %s), ' \
+                     '(SELECT `id` FROM `tasks` WHERE `name` = %s), ' \
+                     '(SELECT `id` FROM `type_tasks` WHERE `name` = %s), ' \
+                     '(SELECT `id` FROM `teachers` WHERE `name` = %s), ' \
+                     '(SELECT `id` FROM `groups` WHERE `name` = %s), ' \
+                     '(SELECT `id` FROM `courses` WHERE `name` = %s), ' \
+                     '(SELECT `id` FROM `year_enter` WHERE `name` = %s), ' \
+                     '(SELECT `id` FROM `periods` WHERE `name` = %s), ' \
+                     '(SELECT `id` FROM `blocks` WHERE `name` = %s), ' \
+                     '(SELECT `id` FROM `organization` WHERE `name` = %s) ' \
+                     'FROM `tokens`'
             cursor.execute(sel_id, tb_data)
             id_data = cursor.fetchone()
             check_db = 'SELECT * FROM `tokens` WHERE `id` = %s AND `subjects_id` = %s AND `tasks_id` = %s AND ' \
                        '`type_tasks_id` = %s AND `teachers_id` = %s AND `groups_id` = %s AND `courses_id` = %s AND ' \
-                       '`year_enter_id` = %s AND `periods_id` = %s AND `blocks_id` = %s'
+                       '`year_enter_id` = %s AND `periods_id` = %s AND `blocks_id` = %s AND `organization_id` = %s'
             cursor.execute(check_db, id_data)
             check_ = cursor.fetchone()
             if check_ == None:
@@ -485,10 +502,11 @@ class UpdateQuestion(QtWidgets.QDialog, Ui_UpdateQuestion):
                 up_id.append(id_data[7])
                 up_id.append(id_data[8])
                 up_id.append(id_data[9])
+                up_id.append(id_data[10])
                 up_id.append(id_data[0])
                 up_t = 'UPDATE `tokens` SET `subjects_id` = %s, `tasks_id` = %s, `type_tasks_id` = %s, ' \
                        '`teachers_id` = %s, `groups_id` = %s, `courses_id` = %s, `year_enter_id` = %s, ' \
-                       '`periods_id` = %s, `blocks_id` = %s WHERE `id` = %s'
+                       '`periods_id` = %s, `blocks_id` = %s, `organization_id` = %s WHERE `id` = %s'
                 cursor.execute(up_t, up_id)
                 conn.commit()
 
@@ -519,6 +537,7 @@ class DeleteQuestion(QtWidgets.QDialog, Ui_DeleteQuestion):
         per_name = []
         tt_name = []
         bl_name = []
+        org_name = []
         sub_name.append(data[0])
         tea_name.append(data[1])
         gr_name.append(data[2])
@@ -527,6 +546,7 @@ class DeleteQuestion(QtWidgets.QDialog, Ui_DeleteQuestion):
         per_name.append(data[5])
         tt_name.append(data[6])
         bl_name.append(data[7])
+        org_name.append(data[8])
         id_data = []
         sel_sub = 'SELECT `id` FROM `subjects` WHERE `name` = %s'
         cursor.execute(sel_sub, sub_name)
@@ -552,10 +572,13 @@ class DeleteQuestion(QtWidgets.QDialog, Ui_DeleteQuestion):
         sel_bl = 'SELECT `id` FROM `blocks` WHERE `name` = %s'
         cursor.execute(sel_bl, bl_name)
         id_data.append(cursor.fetchone()[0])
+        sel_org = 'SELECT `id` FROM `organization` WHERE `name` = %s'
+        cursor.execute(sel_org, org_name)
+        id_data.append(cursor.fetchone()[0])
         main_id = []
         sel_main_id = 'SELECT `id` FROM `tokens` WHERE `subjects_id` = %s AND `teachers_id` = %s AND `groups_id` = %s AND ' \
                       '`courses_id` = %s AND `year_enter_id` = %s AND `periods_id` = %s AND `type_tasks_id` = %s AND ' \
-                      '`blocks_id` = %s'
+                      '`blocks_id` = %s AND `organization_id` = %s'
         cursor.execute(sel_main_id, id_data)
         id_ = cursor.fetchall()
         for i in range(0, len(id_)):
@@ -571,10 +594,11 @@ class DeleteQuestion(QtWidgets.QDialog, Ui_DeleteQuestion):
             cursor.execute(sel_vopr, id_)
             vopr_id.append(cursor.fetchall()[0])
         self.table = QTableWidget(self)
-        self.table.setColumnCount(len(vopr_id[0])+1)
+        self.table.setColumnCount(len(vopr_id[0]) + 1)
         self.table.setRowCount(len(vopr_id))
-        self.table.setHorizontalHeaderLabels(["Статус", "Номер", "Дисциплина", "Задание", "Тип задания", "Преподаватель", "Группа",
-                                              "Курсы", "Год поступления", "Период", "Раздел"])
+        self.table.setHorizontalHeaderLabels(
+            ["Статус", "Номер", "Дисциплина", "Задание", "Тип задания", "Преподаватель", "Группа",
+             "Курсы", "Год поступления", "Период", "Раздел", "ОО"])
         self.table.horizontalHeaderItem(1).setToolTip("Column 1")
         self.table.horizontalHeaderItem(2).setToolTip("Column 2")
         self.table.horizontalHeaderItem(3).setToolTip("Column 3")
@@ -585,6 +609,7 @@ class DeleteQuestion(QtWidgets.QDialog, Ui_DeleteQuestion):
         self.table.horizontalHeaderItem(8).setToolTip("Column 8")
         self.table.horizontalHeaderItem(9).setToolTip("Column 9")
         self.table.horizontalHeaderItem(10).setToolTip("Column 10")
+        self.table.horizontalHeaderItem(11).setToolTip("Column 11")
         self.table.horizontalHeaderItem(1).setTextAlignment(Qt.AlignHCenter)
         self.table.horizontalHeaderItem(2).setTextAlignment(Qt.AlignHCenter)
         self.table.horizontalHeaderItem(3).setTextAlignment(Qt.AlignHCenter)
@@ -595,6 +620,7 @@ class DeleteQuestion(QtWidgets.QDialog, Ui_DeleteQuestion):
         self.table.horizontalHeaderItem(8).setTextAlignment(Qt.AlignHCenter)
         self.table.horizontalHeaderItem(9).setTextAlignment(Qt.AlignHCenter)
         self.table.horizontalHeaderItem(10).setTextAlignment(Qt.AlignHCenter)
+        self.table.horizontalHeaderItem(11).setTextAlignment(Qt.AlignHCenter)
         for i in range(0, len(vopr_id)):
             v_id = []
             v_id.append(vopr_id[i][0])
@@ -607,6 +633,7 @@ class DeleteQuestion(QtWidgets.QDialog, Ui_DeleteQuestion):
             v_id.append(vopr_id[i][7])
             v_id.append(vopr_id[i][8])
             v_id.append(vopr_id[i][9])
+            v_id.append(vopr_id[i][10])
             sel_vopr_name = 'SELECT ' \
                             '(SELECT `id` FROM `tokens` WHERE `id` = %s), ' \
                             '(SELECT `name` FROM `subjects` WHERE `id` = %s), ' \
@@ -617,14 +644,15 @@ class DeleteQuestion(QtWidgets.QDialog, Ui_DeleteQuestion):
                             '(SELECT `name` FROM `courses` WHERE `id` = %s), ' \
                             '(SELECT `name` FROM `year_enter` WHERE `id` = %s), ' \
                             '(SELECT `name` FROM `periods` WHERE `id` = %s), ' \
-                            '(SELECT `name` FROM `blocks` WHERE `id` = %s) ' \
+                            '(SELECT `name` FROM `blocks` WHERE `id` = %s), ' \
+                            '(SELECT `name` FROM `organization` WHERE `id` = %s) ' \
                             'FROM `tokens`'
             cursor.execute(sel_vopr_name, v_id)
             vopr = cursor.fetchone()
             for j in range(0, len(vopr)):
                 item = QTableWidgetItem(str(vopr[j]))
                 item.setFlags(QtCore.Qt.ItemIsEnabled)
-                self.table.setItem(i, j+1, item)
+                self.table.setItem(i, j + 1, item)
             widget = QWidget()
             checkbox = QCheckBox()
             checkbox.setCheckState(Qt.Unchecked)
@@ -740,7 +768,7 @@ class DeleteTokens(QtWidgets.QDialog, Ui_DeleteTokens):
                 else:
                     item = QTableWidgetItem(str(v_id[j]))
                     item.setFlags(QtCore.Qt.ItemIsEnabled)
-                    self.table.setItem(i, j+1, item)
+                    self.table.setItem(i, j + 1, item)
             widget = QWidget()
             checkbox = QCheckBox()
             checkbox.setCheckState(Qt.Unchecked)
@@ -827,8 +855,9 @@ class OptionsDB(QtWidgets.QDialog, Ui_OptionsDB):
         self.save_btn.clicked.connect(self.save_)
 
     def save_(self):
-        data = [{'login': self.name_line.text(), 'password': self.pass_line.text(), 'host': self.host_line.text(), 'name_db': self.db_line.text()}]
-        with open(config[0]['config_db']+'/config_db.json', 'w') as save:
+        data = [{'login': self.name_line.text(), 'password': self.pass_line.text(), 'host': self.host_line.text(),
+                 'name_db': self.db_line.text()}]
+        with open(config[0]['config_db'] + '/config_db.json', 'w') as save:
             json.dump(data, save)
 
 
@@ -1041,7 +1070,7 @@ class DeleteUsers(QtWidgets.QDialog, Ui_DeleteUsers):
         cursor.execute('SELECT * FROM `users`')
         id_uch = cursor.fetchall()
         self.table = QTableWidget(self)
-        self.table.setColumnCount(len(id_uch[0])+1)
+        self.table.setColumnCount(len(id_uch[0]) + 1)
         self.table.setRowCount(len(id_uch))
         self.table.setHorizontalHeaderLabels(
             ["Статус", "Номер", "Логин", "Пароль", "Роль", "Преподаватель"])
@@ -1064,7 +1093,7 @@ class DeleteUsers(QtWidgets.QDialog, Ui_DeleteUsers):
             for j in range(0, len(profile)):
                 item = QTableWidgetItem(str(profile[j]))
                 item.setFlags(QtCore.Qt.ItemIsEnabled)
-                self.table.setItem(i, j+1, item)
+                self.table.setItem(i, j + 1, item)
             widget = QWidget()
             checkbox = QCheckBox()
             checkbox.setCheckState(Qt.Unchecked)
@@ -1258,9 +1287,15 @@ class Ui_MainWindow(QtWidgets.QWidget):
         self.label_17 = QtWidgets.QLabel(self.centralwidget)
         self.label_17.setGeometry(QtCore.QRect(10, 110, 241, 17))
         self.label_17.setObjectName("label_17")
+        self.label_18 = QtWidgets.QLabel(self.centralwidget)
+        self.label_18.setGeometry(QtCore.QRect(10, 110, 241, 17))
+        self.label_18.setObjectName("label_18")
         self.label_21 = QtWidgets.QLabel(self.centralwidget)
         self.label_21.setGeometry(QtCore.QRect(10, 110, 241, 17))
         self.label_21.setObjectName("label_21")
+        self.label_22 = QtWidgets.QLabel(self.centralwidget)
+        self.label_22.setGeometry(QtCore.QRect(10, 110, 241, 17))
+        self.label_22.setObjectName("label_22")
         self.label_23 = QtWidgets.QLabel(self.centralwidget)
         self.label_23.setGeometry(QtCore.QRect(10, 110, 241, 17))
         self.label_23.setObjectName("label_23")
@@ -1306,6 +1341,9 @@ class Ui_MainWindow(QtWidgets.QWidget):
         self.label_38 = QtWidgets.QLabel(self.centralwidget)
         self.label_38.setGeometry(QtCore.QRect(10, 110, 241, 17))
         self.label_38.setObjectName("label_38")
+        self.label_39 = QtWidgets.QLabel(self.centralwidget)
+        self.label_39.setGeometry(QtCore.QRect(10, 110, 241, 17))
+        self.label_39.setObjectName("label_39")
         self.label_41 = QtWidgets.QLabel(self.centralwidget)
         self.label_41.setGeometry(QtCore.QRect(10, 110, 241, 17))
         self.label_41.setObjectName("label_41")
@@ -1330,6 +1368,9 @@ class Ui_MainWindow(QtWidgets.QWidget):
         self.label_48 = QtWidgets.QLabel(self.centralwidget)
         self.label_48.setGeometry(QtCore.QRect(10, 110, 241, 17))
         self.label_48.setObjectName("label_48")
+        self.label_49 = QtWidgets.QLabel(self.centralwidget)
+        self.label_49.setGeometry(QtCore.QRect(10, 110, 241, 17))
+        self.label_49.setObjectName("label_49")
         self.label_51 = QtWidgets.QLabel(self.centralwidget)
         self.label_51.setGeometry(QtCore.QRect(10, 110, 241, 17))
         self.label_51.setObjectName("label_51")
@@ -1402,6 +1443,7 @@ class Ui_MainWindow(QtWidgets.QWidget):
         self.label_53.setText(_translate("MainWindow", "Выберите группу:"))
         self.label_52.setText(_translate("MainWindow", "Выберите преподавателя:"))
         self.label_51.setText(_translate("MainWindow", "Выберите дисциплину:"))
+        self.label_49.setText(_translate("MainWindow", "Выберите образовательную организацию:"))
         self.label_48.setText(_translate("MainWindow", "Выберите модуль/раздел:"))
         self.label_47.setText(_translate("MainWindow", "Выберите тип задания:"))
         self.label_46.setText(_translate("MainWindow", "Выберите период:"))
@@ -1410,6 +1452,7 @@ class Ui_MainWindow(QtWidgets.QWidget):
         self.label_43.setText(_translate("MainWindow", "Выберите группу:"))
         self.label_42.setText(_translate("MainWindow", "Выберите преподавателя:"))
         self.label_41.setText(_translate("MainWindow", "Выберите дисциплину:"))
+        self.label_39.setText(_translate("MainWindow", "Выберите образовательную организацию:"))
         self.label_38.setText(_translate("MainWindow", "Выберите модуль/раздел:"))
         self.label_37.setText(_translate("MainWindow", "Выберите тип задания:"))
         self.label_36.setText(_translate("MainWindow", "Выберите период:"))
@@ -1425,13 +1468,16 @@ class Ui_MainWindow(QtWidgets.QWidget):
         self.label_25.setText(_translate("MainWindow", "Выберите курс:"))
         self.label_24.setText(_translate("MainWindow", "Выберите группу:"))
         self.label_23.setText(_translate("MainWindow", "Выберите преподавателя:"))
+        self.label_22.setText(_translate("MainWindow", "Выберите образовательную организацию:"))
         self.label_21.setText(_translate("MainWindow", "Выберите дисциплину:"))
+        self.label_18.setText(_translate("MainWindow", "Выберите образовательную организацию:"))
         self.label_17.setText(_translate("MainWindow", "Выберите период:"))
         self.label_16.setText(_translate("MainWindow", "Выберите год поступления:"))
         self.label_15.setText(_translate("MainWindow", "Выберите курс:"))
         self.label_14.setText(_translate("MainWindow", "Выберите группу:"))
         self.label_13.setText(_translate("MainWindow", "Выберите преподавателя:"))
         self.label_11.setText(_translate("MainWindow", "Выберите дисциплину:"))
+        self.label_8.setText(_translate("MainWindow", "Выберите образовательную организацию:"))
         self.label_7.setText(_translate("MainWindow", "Выберите период:"))
         self.label_6.setText(_translate("MainWindow", "Выберите год поступления:"))
         self.label_5.setText(_translate("MainWindow", "Выберите курс:"))
@@ -1464,7 +1510,6 @@ class Ui_MainWindow(QtWidgets.QWidget):
 
 class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     # глобальные переменные
-    file_ = ''
     practic = False
 
     # основаная логика приложения
@@ -1522,16 +1567,18 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             teacher = []
             teacher.append(self.user[4])
             sel_sub = 'SELECT DISTINCT `subjects_id` ' \
-                     'FROM `tokens` WHERE `teachers_id` = %s'
+                      'FROM `tokens` WHERE `teachers_id` = %s'
             sel_tea = 'SELECT DISTINCT `teachers_id` ' \
                       'FROM `tokens` WHERE `teachers_id` = %s'
             sel_gr = 'SELECT DISTINCT `groups_id` ' \
-                      'FROM `tokens` WHERE `teachers_id` = %s'
+                     'FROM `tokens` WHERE `teachers_id` = %s'
             sel_cour = 'SELECT DISTINCT `courses_id` ' \
-                      'FROM `tokens` WHERE `teachers_id` = %s'
+                       'FROM `tokens` WHERE `teachers_id` = %s'
             sel_ye = 'SELECT DISTINCT `year_enter_id` ' \
-                      'FROM `tokens` WHERE `teachers_id` = %s'
+                     'FROM `tokens` WHERE `teachers_id` = %s'
             sel_per = 'SELECT DISTINCT `periods_id` ' \
+                      'FROM `tokens` WHERE `teachers_id` = %s'
+            sel_org = 'SELECT DISTINCT `organization_id` ' \
                       'FROM `tokens` WHERE `teachers_id` = %s'
             cursor.execute(sel_sub, teacher)
             sub = cursor.fetchall()
@@ -1545,6 +1592,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             ye = cursor.fetchall()
             cursor.execute(sel_per, teacher)
             per = cursor.fetchall()
+            cursor.execute(sel_org, teacher)
+            org = cursor.fetchall()
             self.combo30 = QComboBox(self)
             for i in range(0, len(sub)):
                 sub_id = []
@@ -1592,6 +1641,13 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             check_sel = cursor.fetchall()
             for i in range(0, len(check_sel)):
                 self.combo36.addItem(check_sel[i][0])
+            self.combo37 = QComboBox(self)
+            for i in range(0, len(org)):
+                org_id = []
+                org_id.append(int(org[i][0]))
+                sel_org_name = 'SELECT `name` FROM `organization` WHERE `id` = %s'
+                cursor.execute(sel_org_name, org_id)
+                self.combo37.addItem(cursor.fetchone()[0])
         else:
             self.combo30 = QComboBox(self)
             cursor.execute('SELECT `name` FROM `subjects`')
@@ -1628,62 +1684,39 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             check_sel = cursor.fetchall()
             for i in range(0, len(check_sel)):
                 self.combo36.addItem(check_sel[i][0])
-        hlayout = QHBoxLayout(self)
+            self.combo37 = QComboBox(self)
+            cursor.execute('SELECT `name` FROM `organization`')
+            check_sel = cursor.fetchall()
+            for i in range(0, len(check_sel)):
+                self.combo37.addItem(check_sel[i][0])
         self.tabWidget = QTabWidget(self.centralwidget)
-        hlayout.addWidget(self.label_21)
         vlayout = QVBoxLayout(self)
-        vlayout.addLayout(hlayout)
+        vlayout.addWidget(self.label_21)
         vlayout.addWidget(self.combo30)
+        vlayout.addWidget(self.label_23)
+        vlayout.addWidget(self.combo31)
+        vlayout.addWidget(self.label_24)
+        vlayout.addWidget(self.combo32)
+        vlayout.addWidget(self.label_25)
+        vlayout.addWidget(self.combo33)
+        vlayout.addWidget(self.label_26)
+        vlayout.addWidget(self.combo34)
+        vlayout.addWidget(self.label_27)
+        vlayout.addWidget(self.combo35)
+        vlayout.addWidget(self.label_28)
+        vlayout.addWidget(self.combo36)
+        vlayout.addWidget(self.label_29)
+        vlayout.addWidget(self.blocks_line)
+        vlayout.addWidget(self.label_22)
+        vlayout.addWidget(self.combo37)
+        hlayout = QHBoxLayout(self)
+        hlayout.addLayout(vlayout)
+        hlayout.addWidget(self.textBox)
         vlayout1 = QVBoxLayout(self)
-        vlayout1.addLayout(vlayout)
-        vlayout1.addWidget(self.label_23)
-        vlayout2 = QVBoxLayout(self)
-        vlayout2.addLayout(vlayout1)
-        vlayout2.addWidget(self.combo31)
-        vlayout3 = QVBoxLayout(self)
-        vlayout3.addLayout(vlayout2)
-        vlayout3.addWidget(self.label_24)
-        vlayout4 = QVBoxLayout(self)
-        vlayout4.addLayout(vlayout3)
-        vlayout4.addWidget(self.combo32)
-        vlayout5 = QVBoxLayout(self)
-        vlayout5.addLayout(vlayout4)
-        vlayout5.addWidget(self.label_25)
-        vlayout6 = QVBoxLayout(self)
-        vlayout6.addLayout(vlayout5)
-        vlayout6.addWidget(self.combo33)
-        vlayout7 = QVBoxLayout(self)
-        vlayout7.addLayout(vlayout6)
-        vlayout7.addWidget(self.label_26)
-        vlayout8 = QVBoxLayout(self)
-        vlayout8.addLayout(vlayout7)
-        vlayout8.addWidget(self.combo34)
-        vlayout9 = QVBoxLayout(self)
-        vlayout9.addLayout(vlayout8)
-        vlayout9.addWidget(self.label_27)
-        vlayout10 = QVBoxLayout(self)
-        vlayout10.addLayout(vlayout9)
-        vlayout10.addWidget(self.combo35)
-        vlayout11 = QVBoxLayout(self)
-        vlayout11.addLayout(vlayout10)
-        vlayout11.addWidget(self.label_28)
-        vlayout12 = QVBoxLayout(self)
-        vlayout12.addLayout(vlayout11)
-        vlayout12.addWidget(self.combo36)
-        vlayout13 = QVBoxLayout(self)
-        vlayout13.addLayout(vlayout12)
-        vlayout13.addWidget(self.label_29)
-        vlayout14 = QVBoxLayout(self)
-        vlayout14.addLayout(vlayout13)
-        vlayout14.addWidget(self.blocks_line)
-        hlayout1 = QHBoxLayout(self)
-        hlayout1.addLayout(vlayout14)
-        hlayout1.addWidget(self.textBox)
-        vlayout15 = QVBoxLayout(self)
-        vlayout15.addLayout(hlayout1)
-        vlayout15.addWidget(self.add_t)
+        vlayout1.addLayout(hlayout)
+        vlayout1.addWidget(self.add_t)
         self.tabWidget.setTabText(3, "CteateQ")
-        self.create_question_.setLayout(vlayout15)
+        self.create_question_.setLayout(vlayout1)
 
     # добавление вопросов
     def create_question(self):
@@ -1695,6 +1728,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         data.append(self.combo34.currentText())
         data.append(self.combo35.currentText())
         data.append(self.combo36.currentText())
+        data.append(self.combo37.currentText())
         data.append(self.blocks_line.text())
         data.append(self.textBox.toPlainText())
         data_id = []
@@ -1707,6 +1741,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         name_tt = []
         name_bl = []
         name_tas = []
+        name_org = []
         name_sub.append(data[0])
         name_tea.append(data[1])
         name_gr.append(data[2])
@@ -1714,8 +1749,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         name_ye.append(data[4])
         name_per.append(data[5])
         name_tt.append(data[6])
-        name_bl.append(data[7])
-        name_tas.append(data[8])
+        name_org.append(data[7])
+        name_bl.append(data[8])
+        name_tas.append(data[9])
         sel_sub = 'SELECT `id` FROM `subjects` WHERE `name` = %s'
         sel_tea = 'SELECT `id` FROM `teachers` WHERE `name` = %s'
         sel_gr = 'SELECT `id` FROM `groups` WHERE `name` = %s'
@@ -1723,6 +1759,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         sel_ye = 'SELECT `id` FROM `year_enter` WHERE `name` = %s'
         sel_per = 'SELECT `id` FROM `periods` WHERE `name` = %s'
         sel_tt = 'SELECT `id` FROM `type_tasks` WHERE `name` = %s'
+        sel_org = 'SELECT `id` FROM `organization` WHERE `name` = %s'
         cursor.execute(sel_sub, name_sub)
         data_id.append(cursor.fetchone()[0])
         cursor.execute(sel_tea, name_tea)
@@ -1736,6 +1773,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         cursor.execute(sel_per, name_per)
         data_id.append(cursor.fetchone()[0])
         cursor.execute(sel_tt, name_tt)
+        data_id.append(cursor.fetchone()[0])
+        cursor.execute(sel_org, name_org)
         data_id.append(cursor.fetchone()[0])
         in_block = 'INSERT INTO `blocks` (`name`) VALUES (%s)'
         check_in = 'SELECT * FROM `blocks` WHERE `name` = %s'
@@ -1756,10 +1795,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         cursor.execute(sel_id_task, name_tas)
         data_id.append(cursor.fetchone()[0])
         in_token = 'INSERT INTO `tokens` (`subjects_id`, `teachers_id`, `groups_id`, `courses_id`, `year_enter_id`, ' \
-                   '`periods_id`, `type_tasks_id`, `blocks_id`, `tasks_id`) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)'
+                   '`periods_id`, `type_tasks_id`, `organization_id`, `blocks_id`, `tasks_id`) VALUES (%s, %s, %s, ' \
+                   '%s, %s, %s, %s, %s, %s, %s)'
         check_in = 'SELECT * FROM `tokens` WHERE `subjects_id` = %s AND `teachers_id` = %s AND `groups_id` = %s AND ' \
                    '`courses_id` = %s AND `year_enter_id` = %s AND `periods_id` = %s AND `type_tasks_id` = %s AND ' \
-                   '`blocks_id` = %s AND `tasks_id` = %s'
+                   '`organization_id` = %s AND `blocks_id` = %s AND `tasks_id` = %s'
         cursor.execute(check_in, data_id)
         if cursor.fetchone() == None:
             cursor.execute(in_token, data_id)
@@ -1771,19 +1811,21 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             teacher = []
             teacher.append(self.user[4])
             sel_sub = 'SELECT DISTINCT `subjects_id` ' \
-                     'FROM `tokens` WHERE `teachers_id` = %s'
+                      'FROM `tokens` WHERE `teachers_id` = %s'
             sel_tea = 'SELECT DISTINCT `teachers_id` ' \
                       'FROM `tokens` WHERE `teachers_id` = %s'
             sel_gr = 'SELECT DISTINCT `groups_id` ' \
-                      'FROM `tokens` WHERE `teachers_id` = %s'
+                     'FROM `tokens` WHERE `teachers_id` = %s'
             sel_cour = 'SELECT DISTINCT `courses_id` ' \
-                      'FROM `tokens` WHERE `teachers_id` = %s'
+                       'FROM `tokens` WHERE `teachers_id` = %s'
             sel_ye = 'SELECT DISTINCT `year_enter_id` ' \
-                      'FROM `tokens` WHERE `teachers_id` = %s'
+                     'FROM `tokens` WHERE `teachers_id` = %s'
             sel_per = 'SELECT DISTINCT `periods_id` ' \
                       'FROM `tokens` WHERE `teachers_id` = %s'
             sel_bl = 'SELECT DISTINCT `blocks_id` FROM `tokens` ' \
                      'WHERE `teachers_id` = %s'
+            sel_org = 'SELECT DISTINCT `organization_id` ' \
+                      'FROM `tokens` WHERE `teachers_id` = %s'
             cursor.execute(sel_sub, teacher)
             sub = cursor.fetchall()
             cursor.execute(sel_tea, teacher)
@@ -1798,6 +1840,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             per = cursor.fetchall()
             cursor.execute(sel_bl, teacher)
             bl = cursor.fetchall()
+            cursor.execute(sel_org, teacher)
+            org = cursor.fetchall()
             self.combo40 = QComboBox(self)
             for i in range(0, len(sub)):
                 sub_id = []
@@ -1852,6 +1896,13 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 sel_bl_name = 'SELECT `name` FROM `blocks` WHERE `id` = %s'
                 cursor.execute(sel_bl_name, bl_id)
                 self.combo47.addItem(cursor.fetchone()[0])
+            self.combo48 = QComboBox(self)
+            for i in range(0, len(org)):
+                org_id = []
+                org_id.append(int(org[i][0]))
+                sel_org_name = 'SELECT `name` FROM `organization` WHERE `id` = %s'
+                cursor.execute(sel_org_name, org_id)
+                self.combo48.addItem(cursor.fetchone()[0])
         else:
             self.combo40 = QComboBox(self)
             cursor.execute('SELECT `name` FROM `subjects`')
@@ -1893,59 +1944,34 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             check_sel = cursor.fetchall()
             for i in range(0, len(check_sel)):
                 self.combo47.addItem(check_sel[i][0])
-        hlayout = QHBoxLayout(self)
+            self.combo48 = QComboBox(self)
+            cursor.execute('SELECT `name` FROM `organization`')
+            check_sel = cursor.fetchall()
+            for i in range(0, len(check_sel)):
+                self.combo48.addItem(check_sel[i][0])
         self.tabWidget = QTabWidget(self.centralwidget)
-        hlayout.addWidget(self.label_31)
         vlayout = QVBoxLayout(self)
-        vlayout.addLayout(hlayout)
+        vlayout.addWidget(self.label_31)
         vlayout.addWidget(self.combo40)
-        vlayout1 = QVBoxLayout(self)
-        vlayout1.addLayout(vlayout)
-        vlayout1.addWidget(self.label_32)
-        vlayout2 = QVBoxLayout(self)
-        vlayout2.addLayout(vlayout1)
-        vlayout2.addWidget(self.combo41)
-        vlayout3 = QVBoxLayout(self)
-        vlayout3.addLayout(vlayout2)
-        vlayout3.addWidget(self.label_33)
-        vlayout4 = QVBoxLayout(self)
-        vlayout4.addLayout(vlayout3)
-        vlayout4.addWidget(self.combo42)
-        vlayout5 = QVBoxLayout(self)
-        vlayout5.addLayout(vlayout4)
-        vlayout5.addWidget(self.label_34)
-        vlayout6 = QVBoxLayout(self)
-        vlayout6.addLayout(vlayout5)
-        vlayout6.addWidget(self.combo43)
-        vlayout7 = QVBoxLayout(self)
-        vlayout7.addLayout(vlayout6)
-        vlayout7.addWidget(self.label_35)
-        vlayout8 = QVBoxLayout(self)
-        vlayout8.addLayout(vlayout7)
-        vlayout8.addWidget(self.combo44)
-        vlayout9 = QVBoxLayout(self)
-        vlayout9.addLayout(vlayout8)
-        vlayout9.addWidget(self.label_36)
-        vlayout10 = QVBoxLayout(self)
-        vlayout10.addLayout(vlayout9)
-        vlayout10.addWidget(self.combo45)
-        vlayout11 = QVBoxLayout(self)
-        vlayout11.addLayout(vlayout10)
-        vlayout11.addWidget(self.label_37)
-        vlayout12 = QVBoxLayout(self)
-        vlayout12.addLayout(vlayout11)
-        vlayout12.addWidget(self.combo46)
-        vlayout13 = QVBoxLayout(self)
-        vlayout13.addLayout(vlayout12)
-        vlayout13.addWidget(self.label_38)
-        vlayout14 = QVBoxLayout(self)
-        vlayout14.addLayout(vlayout13)
-        vlayout14.addWidget(self.combo47)
-        vlayout15 = QVBoxLayout(self)
-        vlayout15.addLayout(vlayout14)
-        vlayout15.addWidget(self.update_t)
+        vlayout.addWidget(self.label_32)
+        vlayout.addWidget(self.combo41)
+        vlayout.addWidget(self.label_33)
+        vlayout.addWidget(self.combo42)
+        vlayout.addWidget(self.label_34)
+        vlayout.addWidget(self.combo43)
+        vlayout.addWidget(self.label_35)
+        vlayout.addWidget(self.combo44)
+        vlayout.addWidget(self.label_36)
+        vlayout.addWidget(self.combo45)
+        vlayout.addWidget(self.label_37)
+        vlayout.addWidget(self.combo46)
+        vlayout.addWidget(self.label_38)
+        vlayout.addWidget(self.combo47)
+        vlayout.addWidget(self.label_39)
+        vlayout.addWidget(self.combo48)
+        vlayout.addWidget(self.update_t)
         self.tabWidget.setTabText(4, "UpdateQ")
-        self.update_question_.setLayout(vlayout15)
+        self.update_question_.setLayout(vlayout)
 
     # открыть класс с обновлением вопросов
     def update_question(self):
@@ -1958,6 +1984,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         tokens.append(self.combo45.currentText())
         tokens.append(self.combo46.currentText())
         tokens.append(self.combo47.currentText())
+        tokens.append(self.combo48.currentText())
         self.UT = UpdateQuestion(tokens, self.user)
         self.UT.show()
 
@@ -1967,19 +1994,21 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             teacher = []
             teacher.append(self.user[4])
             sel_sub = 'SELECT DISTINCT `subjects_id` ' \
-                     'FROM `tokens` WHERE `teachers_id` = %s'
+                      'FROM `tokens` WHERE `teachers_id` = %s'
             sel_tea = 'SELECT DISTINCT `teachers_id` ' \
                       'FROM `tokens` WHERE `teachers_id` = %s'
             sel_gr = 'SELECT DISTINCT `groups_id` ' \
-                      'FROM `tokens` WHERE `teachers_id` = %s'
+                     'FROM `tokens` WHERE `teachers_id` = %s'
             sel_cour = 'SELECT DISTINCT `courses_id` ' \
-                      'FROM `tokens` WHERE `teachers_id` = %s'
+                       'FROM `tokens` WHERE `teachers_id` = %s'
             sel_ye = 'SELECT DISTINCT `year_enter_id` ' \
-                      'FROM `tokens` WHERE `teachers_id` = %s'
+                     'FROM `tokens` WHERE `teachers_id` = %s'
             sel_per = 'SELECT DISTINCT `periods_id` ' \
                       'FROM `tokens` WHERE `teachers_id` = %s'
             sel_bl = 'SELECT DISTINCT `blocks_id` FROM `tokens` ' \
                      'WHERE `teachers_id` = %s'
+            sel_org = 'SELECT DISTINCT `organization_id` FROM `tokens` ' \
+                      'WHERE `teachers_id` = %s'
             cursor.execute(sel_sub, teacher)
             sub = cursor.fetchall()
             cursor.execute(sel_tea, teacher)
@@ -1994,6 +2023,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             per = cursor.fetchall()
             cursor.execute(sel_bl, teacher)
             bl = cursor.fetchall()
+            cursor.execute(sel_org, teacher)
+            org = cursor.fetchall()
             self.combo50 = QComboBox(self)
             for i in range(0, len(sub)):
                 sub_id = []
@@ -2048,6 +2079,13 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 sel_bl_name = 'SELECT `name` FROM `blocks` WHERE `id` = %s'
                 cursor.execute(sel_bl_name, bl_id)
                 self.combo57.addItem(cursor.fetchone()[0])
+            self.combo58 = QComboBox(self)
+            for i in range(0, len(org)):
+                org_id = []
+                org_id.append(int(org[i][0]))
+                sel_org_name = 'SELECT `name` FROM `organization` WHERE `id` = %s'
+                cursor.execute(sel_org_name, org_id)
+                self.combo58.addItem(cursor.fetchone()[0])
         else:
             self.combo50 = QComboBox(self)
             cursor.execute('SELECT `name` FROM `subjects`')
@@ -2089,59 +2127,34 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             check_sel = cursor.fetchall()
             for i in range(0, len(check_sel)):
                 self.combo57.addItem(check_sel[i][0])
-        hlayout = QHBoxLayout(self)
+            self.combo58 = QComboBox(self)
+            cursor.execute('SELECT `name` FROM `organization`')
+            check_sel = cursor.fetchall()
+            for i in range(0, len(check_sel)):
+                self.combo58.addItem(check_sel[i][0])
         self.tabWidget = QTabWidget(self.centralwidget)
-        hlayout.addWidget(self.label_41)
         vlayout = QVBoxLayout(self)
-        vlayout.addLayout(hlayout)
+        vlayout.addWidget(self.label_41)
         vlayout.addWidget(self.combo50)
-        vlayout1 = QVBoxLayout(self)
-        vlayout1.addLayout(vlayout)
-        vlayout1.addWidget(self.label_42)
-        vlayout2 = QVBoxLayout(self)
-        vlayout2.addLayout(vlayout1)
-        vlayout2.addWidget(self.combo51)
-        vlayout3 = QVBoxLayout(self)
-        vlayout3.addLayout(vlayout2)
-        vlayout3.addWidget(self.label_43)
-        vlayout4 = QVBoxLayout(self)
-        vlayout4.addLayout(vlayout3)
-        vlayout4.addWidget(self.combo52)
-        vlayout5 = QVBoxLayout(self)
-        vlayout5.addLayout(vlayout4)
-        vlayout5.addWidget(self.label_44)
-        vlayout6 = QVBoxLayout(self)
-        vlayout6.addLayout(vlayout5)
-        vlayout6.addWidget(self.combo53)
-        vlayout7 = QVBoxLayout(self)
-        vlayout7.addLayout(vlayout6)
-        vlayout7.addWidget(self.label_45)
-        vlayout8 = QVBoxLayout(self)
-        vlayout8.addLayout(vlayout7)
-        vlayout8.addWidget(self.combo54)
-        vlayout9 = QVBoxLayout(self)
-        vlayout9.addLayout(vlayout8)
-        vlayout9.addWidget(self.label_46)
-        vlayout10 = QVBoxLayout(self)
-        vlayout10.addLayout(vlayout9)
-        vlayout10.addWidget(self.combo55)
-        vlayout11 = QVBoxLayout(self)
-        vlayout11.addLayout(vlayout10)
-        vlayout11.addWidget(self.label_47)
-        vlayout12 = QVBoxLayout(self)
-        vlayout12.addLayout(vlayout11)
-        vlayout12.addWidget(self.combo56)
-        vlayout13 = QVBoxLayout(self)
-        vlayout13.addLayout(vlayout12)
-        vlayout13.addWidget(self.label_48)
-        vlayout14 = QVBoxLayout(self)
-        vlayout14.addLayout(vlayout13)
-        vlayout14.addWidget(self.combo57)
-        vlayout15 = QVBoxLayout(self)
-        vlayout15.addLayout(vlayout14)
-        vlayout15.addWidget(self.delete_t)
+        vlayout.addWidget(self.label_42)
+        vlayout.addWidget(self.combo51)
+        vlayout.addWidget(self.label_43)
+        vlayout.addWidget(self.combo52)
+        vlayout.addWidget(self.label_44)
+        vlayout.addWidget(self.combo53)
+        vlayout.addWidget(self.label_45)
+        vlayout.addWidget(self.combo54)
+        vlayout.addWidget(self.label_46)
+        vlayout.addWidget(self.combo55)
+        vlayout.addWidget(self.label_47)
+        vlayout.addWidget(self.combo56)
+        vlayout.addWidget(self.label_48)
+        vlayout.addWidget(self.combo57)
+        vlayout.addWidget(self.label_49)
+        vlayout.addWidget(self.combo58)
+        vlayout.addWidget(self.delete_t)
         self.tabWidget.setTabText(5, "DeleteQ")
-        self.delete_question_.setLayout(vlayout15)
+        self.delete_question_.setLayout(vlayout)
 
     # открыть класс с удалением вопросов
     def delete_question(self):
@@ -2154,6 +2167,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         tokens.append(self.combo55.currentText())
         tokens.append(self.combo56.currentText())
         tokens.append(self.combo57.currentText())
+        tokens.append(self.combo58.currentText())
         self.DT = DeleteQuestion(tokens)
         self.DT.show()
 
@@ -2201,16 +2215,16 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             cursor.execute(sel_id, id_)
             res = cursor.fetchone()
             sel_res = 'SELECT ' \
-                          '(SELECT `name` FROM `subjects` WHERE `id` = %s), ' \
-                          '(SELECT `name` FROM `teachers` WHERE `id` = %s), ' \
-                          '(SELECT `name` FROM `groups` WHERE `id` = %s), ' \
-                          '(SELECT `name` FROM `courses` WHERE `id` = %s), ' \
-                          '(SELECT `name` FROM `year_enter` WHERE `id` = %s), ' \
-                          '(SELECT `name` FROM `periods` WHERE `id` = %s), ' \
-                          '(SELECT `name` FROM `blocks` WHERE `id` = %s), ' \
-                          '(SELECT `name` FROM `tasks` WHERE `id` = %s), ' \
-                          '(SELECT `name` FROM `type_tasks` WHERE `id` = %s) ' \
-                          'FROM `tokens`'
+                      '(SELECT `name` FROM `subjects` WHERE `id` = %s), ' \
+                      '(SELECT `name` FROM `teachers` WHERE `id` = %s), ' \
+                      '(SELECT `name` FROM `groups` WHERE `id` = %s), ' \
+                      '(SELECT `name` FROM `courses` WHERE `id` = %s), ' \
+                      '(SELECT `name` FROM `year_enter` WHERE `id` = %s), ' \
+                      '(SELECT `name` FROM `periods` WHERE `id` = %s), ' \
+                      '(SELECT `name` FROM `blocks` WHERE `id` = %s), ' \
+                      '(SELECT `name` FROM `tasks` WHERE `id` = %s), ' \
+                      '(SELECT `name` FROM `type_tasks` WHERE `id` = %s) ' \
+                      'FROM `tokens`'
             cursor.execute(sel_res, res)
             result.append(cursor.fetchone())
         doc = aw.Document()
@@ -2230,12 +2244,20 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
     # окно парсера
     def parserUI(self):
+        cursor.execute('SELECT `name` FROM `organization`')
+        name_org = cursor.fetchall()
+        self.combo70 = QComboBox(self)
+        for i in range(0, len(name_org)):
+            self.combo70.addItem(name_org[i][0])
+        vl = QVBoxLayout(self)
+        vl.addWidget(self.combo70)
         hlayout = QHBoxLayout(self)
         self.tabWidget = QTabWidget(self.centralwidget)
         hlayout.addWidget(self.label_2)
         hlayout.addWidget(self.filename_2)
         hlayout.addWidget(self.open_pars)
         vlayout = QVBoxLayout(self)
+        vlayout.addLayout(vl)
         vlayout.addLayout(hlayout)
         vlayout.addWidget(self.pars_)
         self.tabWidget.setTabText(0, "Parser")
@@ -2247,16 +2269,18 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             teacher = []
             teacher.append(self.user[4])
             sel_sub = 'SELECT DISTINCT `subjects_id` ' \
-                     'FROM `tokens` WHERE `teachers_id` = %s'
+                      'FROM `tokens` WHERE `teachers_id` = %s'
             sel_tea = 'SELECT DISTINCT `teachers_id` ' \
                       'FROM `tokens` WHERE `teachers_id` = %s'
             sel_gr = 'SELECT DISTINCT `groups_id` ' \
-                      'FROM `tokens` WHERE `teachers_id` = %s'
+                     'FROM `tokens` WHERE `teachers_id` = %s'
             sel_cour = 'SELECT DISTINCT `courses_id` ' \
-                      'FROM `tokens` WHERE `teachers_id` = %s'
+                       'FROM `tokens` WHERE `teachers_id` = %s'
             sel_ye = 'SELECT DISTINCT `year_enter_id` ' \
-                      'FROM `tokens` WHERE `teachers_id` = %s'
+                     'FROM `tokens` WHERE `teachers_id` = %s'
             sel_per = 'SELECT DISTINCT `periods_id` ' \
+                      'FROM `tokens` WHERE `teachers_id` = %s'
+            sel_org = 'SELECT DISTINCT `organization_id` ' \
                       'FROM `tokens` WHERE `teachers_id` = %s'
             cursor.execute(sel_sub, teacher)
             sub = cursor.fetchall()
@@ -2270,6 +2294,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             ye = cursor.fetchall()
             cursor.execute(sel_per, teacher)
             per = cursor.fetchall()
+            cursor.execute(sel_org, teacher)
+            org = cursor.fetchall()
             self.combo = QComboBox(self)
             for i in range(0, len(sub)):
                 sub_id = []
@@ -2312,6 +2338,13 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 sel_per_name = 'SELECT `name` FROM `periods` WHERE `id` = %s'
                 cursor.execute(sel_per_name, per_id)
                 self.combo5.addItem(cursor.fetchone()[0])
+            self.combo6 = QComboBox(self)
+            for i in range(0, len(org)):
+                org_id = []
+                org_id.append(int(org[i][0]))
+                sel_org_name = 'SELECT `name` FROM `organization` WHERE `id` = %s'
+                cursor.execute(sel_org_name, org_id)
+                self.combo6.addItem(cursor.fetchone()[0])
         else:
             self.combo = QComboBox(self)
             cursor.execute('SELECT `name` FROM `subjects`')
@@ -2343,50 +2376,31 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             check_sel = cursor.fetchall()
             for i in range(0, len(check_sel)):
                 self.combo5.addItem(check_sel[i][0])
-        hlayout = QHBoxLayout(self)
+            self.combo6 = QComboBox(self)
+            cursor.execute('SELECT `name` FROM `organization`')
+            check_sel = cursor.fetchall()
+            for i in range(0, len(check_sel)):
+                self.combo6.addItem(check_sel[i][0])
         self.tabWidget = QTabWidget(self.centralwidget)
-        hlayout.addWidget(self.label_1)
         vlayout = QVBoxLayout(self)
-        vlayout.addLayout(hlayout)
+        vlayout.addWidget(self.label_1)
         vlayout.addWidget(self.combo)
-        vlayout1 = QVBoxLayout(self)
-        vlayout1.addLayout(vlayout)
-        vlayout1.addWidget(self.label_3)
-        vlayout2 = QVBoxLayout(self)
-        vlayout2.addLayout(vlayout1)
-        vlayout2.addWidget(self.combo1)
-        vlayout3 = QVBoxLayout(self)
-        vlayout3.addLayout(vlayout2)
-        vlayout3.addWidget(self.label_4)
-        vlayout4 = QVBoxLayout(self)
-        vlayout4.addLayout(vlayout3)
-        vlayout4.addWidget(self.combo2)
-        vlayout5 = QVBoxLayout(self)
-        vlayout5.addLayout(vlayout4)
-        vlayout5.addWidget(self.label_5)
-        vlayout6 = QVBoxLayout(self)
-        vlayout6.addLayout(vlayout5)
-        vlayout6.addWidget(self.combo3)
-        vlayout7 = QVBoxLayout(self)
-        vlayout7.addLayout(vlayout6)
-        vlayout7.addWidget(self.label_6)
-        vlayout8 = QVBoxLayout(self)
-        vlayout8.addLayout(vlayout7)
-        vlayout8.addWidget(self.combo4)
-        vlayout9 = QVBoxLayout(self)
-        vlayout9.addLayout(vlayout8)
-        vlayout9.addWidget(self.label_7)
-        vlayout10 = QVBoxLayout(self)
-        vlayout10.addLayout(vlayout9)
-        vlayout10.addWidget(self.combo5)
-        vlayout15 = QVBoxLayout(self)
-        vlayout15.addLayout(vlayout10)
-        vlayout15.addWidget(self.checkBox_practic_gen)
-        vlayout16 = QVBoxLayout(self)
-        vlayout16.addLayout(vlayout15)
-        vlayout16.addWidget(self.gen_b)
+        vlayout.addWidget(self.label_3)
+        vlayout.addWidget(self.combo1)
+        vlayout.addWidget(self.label_4)
+        vlayout.addWidget(self.combo2)
+        vlayout.addWidget(self.label_5)
+        vlayout.addWidget(self.combo3)
+        vlayout.addWidget(self.label_6)
+        vlayout.addWidget(self.combo4)
+        vlayout.addWidget(self.label_7)
+        vlayout.addWidget(self.combo5)
+        vlayout.addWidget(self.label_8)
+        vlayout.addWidget(self.combo6)
+        vlayout.addWidget(self.checkBox_practic_gen)
+        vlayout.addWidget(self.gen_b)
         self.tabWidget.setTabText(1, "Generate")
-        self.generator_.setLayout(vlayout16)
+        self.generator_.setLayout(vlayout)
 
     # контроль чекбокса
     def clickBox(self, state):
@@ -2401,16 +2415,18 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             teacher = []
             teacher.append(self.user[4])
             sel_sub = 'SELECT DISTINCT `subjects_id` ' \
-                     'FROM `tokens` WHERE `teachers_id` = %s'
+                      'FROM `tokens` WHERE `teachers_id` = %s'
             sel_tea = 'SELECT DISTINCT `teachers_id` ' \
                       'FROM `tokens` WHERE `teachers_id` = %s'
             sel_gr = 'SELECT DISTINCT `groups_id` ' \
-                      'FROM `tokens` WHERE `teachers_id` = %s'
+                     'FROM `tokens` WHERE `teachers_id` = %s'
             sel_cour = 'SELECT DISTINCT `courses_id` ' \
-                      'FROM `tokens` WHERE `teachers_id` = %s'
+                       'FROM `tokens` WHERE `teachers_id` = %s'
             sel_ye = 'SELECT DISTINCT `year_enter_id` ' \
-                      'FROM `tokens` WHERE `teachers_id` = %s'
+                     'FROM `tokens` WHERE `teachers_id` = %s'
             sel_per = 'SELECT DISTINCT `periods_id` ' \
+                      'FROM `tokens` WHERE `teachers_id` = %s'
+            sel_org = 'SELECT DISTINCT `organization_id` ' \
                       'FROM `tokens` WHERE `teachers_id` = %s'
             cursor.execute(sel_sub, teacher)
             sub = cursor.fetchall()
@@ -2424,6 +2440,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             ye = cursor.fetchall()
             cursor.execute(sel_per, teacher)
             per = cursor.fetchall()
+            cursor.execute(sel_org, teacher)
+            org = cursor.fetchall()
             self.combo20 = QComboBox(self)
             for i in range(0, len(sub)):
                 sub_id = []
@@ -2466,6 +2484,13 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 sel_per_name = 'SELECT `name` FROM `periods` WHERE `id` = %s'
                 cursor.execute(sel_per_name, per_id)
                 self.combo25.addItem(cursor.fetchone()[0])
+            self.combo26 = QComboBox(self)
+            for i in range(0, len(org)):
+                org_id = []
+                org_id.append(int(org[i][0]))
+                sel_org_name = 'SELECT `name` FROM `organization` WHERE `id` = %s'
+                cursor.execute(sel_org_name, org_id)
+                self.combo26.addItem(cursor.fetchone()[0])
         else:
             self.combo20 = QComboBox(self)
             cursor.execute('SELECT `name` FROM `subjects`')
@@ -2497,53 +2522,31 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             check_sel = cursor.fetchall()
             for i in range(0, len(check_sel)):
                 self.combo25.addItem(check_sel[i][0])
-        hlayout = QHBoxLayout(self)
+            self.combo26 = QComboBox(self)
+            cursor.execute('SELECT `name` FROM `organization`')
+            check_sel = cursor.fetchall()
+            for i in range(0, len(check_sel)):
+                self.combo26.addItem(check_sel[i][0])
         self.tabWidget1 = QTabWidget(self.centralwidget)
-        hlayout.addWidget(self.label_11)
         vlayout = QVBoxLayout(self)
-        vlayout.addLayout(hlayout)
+        vlayout.addWidget(self.label_11)
         vlayout.addWidget(self.combo20)
-        vlayout1 = QVBoxLayout(self)
-        vlayout1.addLayout(vlayout)
-        vlayout1.addWidget(self.label_13)
-        vlayout2 = QVBoxLayout(self)
-        vlayout2.addLayout(vlayout1)
-        vlayout2.addWidget(self.combo21)
-        vlayout3 = QVBoxLayout(self)
-        vlayout3.addLayout(vlayout2)
-        vlayout3.addWidget(self.label_14)
-        vlayout4 = QVBoxLayout(self)
-        vlayout4.addLayout(vlayout3)
-        vlayout4.addWidget(self.combo22)
-        vlayout5 = QVBoxLayout(self)
-        vlayout5.addLayout(vlayout4)
-        vlayout5.addWidget(self.label_15)
-        vlayout6 = QVBoxLayout(self)
-        vlayout6.addLayout(vlayout5)
-        vlayout6.addWidget(self.combo23)
-        vlayout7 = QVBoxLayout(self)
-        vlayout7.addLayout(vlayout6)
-        vlayout7.addWidget(self.label_16)
-        vlayout8 = QVBoxLayout(self)
-        vlayout8.addLayout(vlayout7)
-        vlayout8.addWidget(self.combo24)
-        vlayout9 = QVBoxLayout(self)
-        vlayout9.addLayout(vlayout8)
-        vlayout9.addWidget(self.label_17)
-        vlayout10 = QVBoxLayout(self)
-        vlayout10.addLayout(vlayout9)
-        vlayout10.addWidget(self.combo25)
-        hlayout1 = QHBoxLayout(self)
-        hlayout1.addLayout(vlayout10)
-        hlayout1.addWidget(self.label_8)
-        vlayout11 = QVBoxLayout(self)
-        vlayout11.addLayout(hlayout1)
-        vlayout11.addWidget(self.output_)
-        vlayout12 = QVBoxLayout(self)
-        vlayout12.addLayout(vlayout11)
-        vlayout12.addWidget(self.output_v)
+        vlayout.addWidget(self.label_13)
+        vlayout.addWidget(self.combo21)
+        vlayout.addWidget(self.label_14)
+        vlayout.addWidget(self.combo22)
+        vlayout.addWidget(self.label_15)
+        vlayout.addWidget(self.combo23)
+        vlayout.addWidget(self.label_16)
+        vlayout.addWidget(self.combo24)
+        vlayout.addWidget(self.label_17)
+        vlayout.addWidget(self.combo25)
+        vlayout.addWidget(self.label_18)
+        vlayout.addWidget(self.combo26)
+        vlayout.addWidget(self.output_)
+        vlayout.addWidget(self.output_v)
         self.tabWidget1.setTabText(2, "Output")
-        self.output.setLayout(vlayout12)
+        self.output.setLayout(vlayout)
 
     # окно удаления билетов
     def delete_tokens_Ui(self):
@@ -2583,47 +2586,23 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             check_sel = cursor.fetchall()
             for i in range(0, len(check_sel)):
                 self.combo65.addItem(check_sel[i][0])
-            hlayout = QHBoxLayout(self)
             self.tabWidget = QTabWidget(self.centralwidget)
-            hlayout.addWidget(self.label_51)
             vlayout = QVBoxLayout(self)
-            vlayout.addLayout(hlayout)
+            vlayout.addWidget(self.label_51)
             vlayout.addWidget(self.combo60)
-            vlayout1 = QVBoxLayout(self)
-            vlayout1.addLayout(vlayout)
-            vlayout1.addWidget(self.label_52)
-            vlayout2 = QVBoxLayout(self)
-            vlayout2.addLayout(vlayout1)
-            vlayout2.addWidget(self.combo61)
-            vlayout3 = QVBoxLayout(self)
-            vlayout3.addLayout(vlayout2)
-            vlayout3.addWidget(self.label_53)
-            vlayout4 = QVBoxLayout(self)
-            vlayout4.addLayout(vlayout3)
-            vlayout4.addWidget(self.combo62)
-            vlayout5 = QVBoxLayout(self)
-            vlayout5.addLayout(vlayout4)
-            vlayout5.addWidget(self.label_54)
-            vlayout6 = QVBoxLayout(self)
-            vlayout6.addLayout(vlayout5)
-            vlayout6.addWidget(self.combo63)
-            vlayout7 = QVBoxLayout(self)
-            vlayout7.addLayout(vlayout6)
-            vlayout7.addWidget(self.label_55)
-            vlayout8 = QVBoxLayout(self)
-            vlayout8.addLayout(vlayout7)
-            vlayout8.addWidget(self.combo64)
-            vlayout9 = QVBoxLayout(self)
-            vlayout9.addLayout(vlayout8)
-            vlayout9.addWidget(self.label_56)
-            vlayout10 = QVBoxLayout(self)
-            vlayout10.addLayout(vlayout9)
-            vlayout10.addWidget(self.combo65)
-            vlayout15 = QVBoxLayout(self)
-            vlayout15.addLayout(vlayout10)
-            vlayout15.addWidget(self.delete_token)
+            vlayout.addWidget(self.label_52)
+            vlayout.addWidget(self.combo61)
+            vlayout.addWidget(self.label_53)
+            vlayout.addWidget(self.combo62)
+            vlayout.addWidget(self.label_54)
+            vlayout.addWidget(self.combo63)
+            vlayout.addWidget(self.label_55)
+            vlayout.addWidget(self.combo64)
+            vlayout.addWidget(self.label_56)
+            vlayout.addWidget(self.combo65)
+            vlayout.addWidget(self.delete_token)
             self.tabWidget.setTabText(7, "DeleteTokens")
-            self.delete_tokens_.setLayout(vlayout15)
+            self.delete_tokens_.setLayout(vlayout)
 
     # удаление билтеов
     def delete_tokens(self):
@@ -2640,9 +2619,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     # сам парсер
     def pars(self):
         # Чтение excel
-        global file_
-        file = self.file_
-        df = pd.read_excel(io=file, engine='openpyxl', sheet_name='Лист1')
+        df = pd.read_excel(self.file_, engine='openpyxl', sheet_name='Лист1')
 
         # Парс excel
         result = []
@@ -2767,9 +2744,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # Парс БИЛЕТОВ
         for i in range(0, len(df['Дисциплины'].tolist())):
             add_ser = 'INSERT INTO `tokens` (`subjects_id`, `tasks_id`, `blocks_id`, `type_tasks_id`, `teachers_id`, ' \
-                      '`groups_id`, `courses_id`, `year_enter_id`, periods_id) ' \
-                      'VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)'
-            for j in range(0, len(df.values.tolist()[i])):
+                      '`groups_id`, `courses_id`, `year_enter_id`, periods_id, `organization_id`) ' \
+                      'VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'
+            for j in range(10):
                 data_db = []
                 if j == 0:
                     data_db.append(df.values.tolist()[i][j])
@@ -2816,9 +2793,15 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                     check_input = 'SELECT `id` FROM `periods` WHERE `name` = %s'
                     cursor.execute(check_input, data_db)
                     result.append(cursor.fetchone()[0])
+                elif j == 9:
+                    data_db.append(self.combo70.currentText())
+                    check_input = 'SELECT `id` FROM `organization` WHERE `name` = %s'
+                    cursor.execute(check_input, data_db)
+                    result.append(cursor.fetchone()[0])
             check_input = 'SELECT * FROM `tokens` WHERE `subjects_id` = %s AND `tasks_id` = %s AND `blocks_id` = %s ' \
                           'AND `type_tasks_id` = %s AND `teachers_id` = %s AND `groups_id` = %s ' \
-                          'AND `courses_id` = %s AND `year_enter_id` = %s AND `periods_id` = %s'
+                          'AND `courses_id` = %s AND `year_enter_id` = %s AND `periods_id` = %s ' \
+                          'AND `organization_id` = %s'
             cursor.execute(check_input, result)
             if cursor.fetchone() == None:
                 cursor.execute(add_ser, result)
@@ -2857,20 +2840,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.open_pars.hide()
         fname, _ = QtWidgets.QFileDialog.getOpenFileName(self, 'Open file', './', '(*.xls *.xlsx)')
         if fname:
-            global file_
             self.filename_2.setText(fname)
-            self.file_ += str(fname)
+            self.file_ = str(fname)
 
     # вывод билетов
     def gen_out(self):
-        text, ok = QInputDialog.getText(self, 'Название учебной организации',
-                                        'Название: ')
-        if ok:
-            self.uch_org_line.setText(str(text))
-        text, ok = QInputDialog.getText(self, 'Полное название дисциплины',
-                                        'Название: ')
-        if ok:
-            self.full_name_line.setText(str(text))
         doc = aw.Document()
         builder = aw.DocumentBuilder(doc)
 
@@ -2884,18 +2858,20 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         all_name.append(self.combo23.currentText())
         all_name.append(self.combo24.currentText())
         all_name.append(self.combo25.currentText())
+        all_name.append(self.combo26.currentText())
         sel_all_id = 'SELECT ' \
-                 '(SELECT `id` FROM `subjects` WHERE `name` = %s), ' \
-                 '(SELECT `id` FROM `teachers` WHERE `name` = %s), ' \
-                 '(SELECT `id` FROM `groups` WHERE `name` = %s), ' \
-                 '(SELECT `id` FROM `courses` WHERE `name` = %s), ' \
-                 '(SELECT `id` FROM `year_enter` WHERE `name` = %s), ' \
-                 '(SELECT `id` FROM `periods` WHERE `name` = %s) ' \
-                 'FROM `tokens`'
+                     '(SELECT `id` FROM `subjects` WHERE `name` = %s), ' \
+                     '(SELECT `id` FROM `teachers` WHERE `name` = %s), ' \
+                     '(SELECT `id` FROM `groups` WHERE `name` = %s), ' \
+                     '(SELECT `id` FROM `courses` WHERE `name` = %s), ' \
+                     '(SELECT `id` FROM `year_enter` WHERE `name` = %s), ' \
+                     '(SELECT `id` FROM `periods` WHERE `name` = %s), ' \
+                     '(SELECT `id` FROM `organization` WHERE `name` = %s) ' \
+                     'FROM `tokens`'
         cursor.execute(sel_all_id, all_name)
         all_id = cursor.fetchone()
         sel_main_id = 'SELECT `id` FROM `tokens` WHERE `subjects_id` = %s AND `teachers_id` = %s AND `groups_id` = %s ' \
-                  'AND `courses_id` = %s AND `year_enter_id` = %s AND `periods_id` = %s'
+                      'AND `courses_id` = %s AND `year_enter_id` = %s AND `periods_id` = %s AND `organization_id` = %s'
         cursor.execute(sel_main_id, all_id)
         main_id = cursor.fetchall()
         num_arr = []
@@ -2926,7 +2902,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             result = []
             for z in range(0, len(right_id_tokens)):
                 sel_vopr = 'SELECT `subjects_id`, `teachers_id`, `groups_id`, `courses_id`, `year_enter_id`, `periods_id`, ' \
-                           '`tasks_id`, `type_tasks_id`, `blocks_id` FROM `tokens` WHERE `id` = %s'
+                           '`tasks_id`, `type_tasks_id`, `blocks_id`, `organization_id` FROM `tokens` WHERE `id` = %s'
                 id_vopr = []
                 id_vopr.append(right_id_tokens[z])
                 cursor.execute(sel_vopr, id_vopr)
@@ -2940,7 +2916,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                           '(SELECT `name` FROM `periods` WHERE `id` = %s), ' \
                           '(SELECT `name` FROM `tasks` WHERE `id` = %s), ' \
                           '(SELECT `name` FROM `type_tasks` WHERE `id` = %s), ' \
-                          '(SELECT `name` FROM `blocks` WHERE `id` = %s) ' \
+                          '(SELECT `name` FROM `blocks` WHERE `id` = %s), ' \
+                          '(SELECT `name` FROM `organization` WHERE `id` = %s) ' \
                           'FROM `tokens`'
                 cursor.execute(sel_res, res)
                 result.append(cursor.fetchone())
@@ -2951,7 +2928,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             par_format = builder.paragraph_format
             par_format.alignment = aw.ParagraphAlignment.CENTER
 
-            builder.writeln(f'{str(self.uch_org_line.text())} \nБилет №{num_arr[i]}\nпо дисциплине "{str(self.full_name_line.text())}"')
+            builder.writeln(
+                f'{str(result[0][9])} \nБилет №{num_arr[i]}\nпо дисциплине "{str(result[0][0])}"')
             builder.writeln("_____________________________________________________________________")
 
             par_format = builder.paragraph_format
@@ -2965,13 +2943,13 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             font = builder.font
             font.size = 10
             font.name = "Times New Romans"
-            builder.writeln("                                                                      (подпись)                                                            (фамилия, инициалы)")
+            builder.writeln(
+                "                                                                      (подпись)                                                            (фамилия, инициалы)")
             font = builder.font
             font.size = 14
             font.name = "Times New Romans"
             builder.writeln("_____________________________________________________________________")
-        doc.save(str(self.full_name_line.text()) + '.docx')
-        self.label_8.setText('Документ выгружены!')
+        doc.save(str(result[0][0]) + '.docx')
 
     # сам генератор
     def generator(self):
@@ -3013,16 +2991,23 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             if check_sel[i][1] == self.combo5.currentText():
                 res.append(check_sel[i][0])
                 break
+        cursor.execute('SELECT `id`, `name` FROM `organization`')
+        check_sel = cursor.fetchall()
+        for i in range(0, len(check_sel) + 1):
+            if check_sel[i][1] == self.combo6.currentText():
+                res.append(check_sel[i][0])
+                break
         type_t.append(res[0])
         type_t.append(res[1])
         type_t.append(res[2])
         type_t.append(res[3])
         type_t.append(res[4])
         type_t.append(res[5])
+        type_t.append(res[6])
         block_list_id = []
         id_block = 'SELECT DISTINCT `blocks_id` FROM `tokens` WHERE subjects_id = %s ' \
                    'AND teachers_id = %s AND groups_id = %s AND courses_id = %s AND year_enter_id = %s ' \
-                   'AND periods_id = %s'
+                   'AND periods_id = %s AND organization_id = %s'
         cursor.execute(id_block, type_t)
         check_sel = cursor.fetchall()
         for i in range(0, len(check_sel)):
@@ -3037,12 +3022,13 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         cursor.execute("SELECT `id` FROM type_tasks WHERE `name` = 'теория'")
         count_tasks_to_block.append(cursor.fetchone()[0])
         count_tasks_to_block.append(0)
+        count_tasks_to_block.append(type_t[6])
         check_blocks_teor = []
         for i in range(0, len(block_list_id)):
             count_tasks_to_block[7] = block_list_id[i]
             sel_check_blocks_teor = 'SELECT count(blocks_id) FROM tokens WHERE subjects_id = %s AND teachers_id = %s ' \
                                     'AND groups_id = %s AND courses_id = %s AND year_enter_id = %s AND periods_id = %s ' \
-                                    'AND type_tasks_id = %s AND blocks_id = %s'
+                                    'AND type_tasks_id = %s AND blocks_id = %s AND organization_id = %s'
             cursor.execute(sel_check_blocks_teor, count_tasks_to_block)
             check_blocks_teor.append(cursor.fetchone()[0])
         cursor.execute("SELECT `id` FROM type_tasks WHERE `name` = 'практика'")
@@ -3052,7 +3038,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             count_tasks_to_block[7] = block_list_id[i]
             sel_check_blocks_pract = 'SELECT count(blocks_id) FROM tokens WHERE subjects_id = %s AND teachers_id = %s ' \
                                      'AND groups_id = %s AND courses_id = %s AND year_enter_id = %s AND periods_id = %s ' \
-                                     'AND type_tasks_id = %s AND blocks_id = %s'
+                                     'AND type_tasks_id = %s AND blocks_id = %s AND organization_id = %s'
             cursor.execute(sel_check_blocks_pract, count_tasks_to_block)
             check_blocks_pract.append(cursor.fetchone()[0])
         set_ = 0
@@ -3101,7 +3087,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             for h in range(0, len(arr_tok[q])):
                 num_token += 1
                 set_q = []
-                set_q.append(q+1)
+                set_q.append(q + 1)
                 sel_set = 'SELECT `tokens_id`, `set` FROM `exam_tokens` WHERE `set` = %s'
                 cursor.execute(sel_set, set_q)
                 check_token = cursor.fetchall()
@@ -3115,14 +3101,14 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 for i in range(0, len(block_list_id)):
                     cursor.execute("SELECT `id` FROM `type_tasks` WHERE `name` = 'теория'")
                     sel_teor = cursor.fetchone()
-                    type_t[6] = sel_teor[0]
+                    type_t[7] = sel_teor[0]
                     write = 0
-                    type_t[7] = block_list_id[i]
+                    type_t[8] = block_list_id[i]
                     type_task_id = []
                     id_teor = 'SELECT `id` FROM `tokens` ' \
                               'WHERE `subjects_id` = %s AND `teachers_id` = %s ' \
                               'AND `groups_id` = %s AND `courses_id` = %s ' \
-                              'AND `year_enter_id` = %s AND `periods_id` = %s ' \
+                              'AND `year_enter_id` = %s AND `periods_id` = %s AND `organization_id` = %s ' \
                               'AND `type_tasks_id` = %s AND `blocks_id` = %s'
                     cursor.execute(id_teor, type_t)
                     check_teor = cursor.fetchall()
@@ -3140,6 +3126,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                         all_id_in_token[5] = type_t[5]
                         all_id_in_token[6] = type_t[6]
                         all_id_in_token[7] = type_t[7]
+                        all_id_in_token[8] = type_t[8]
                         all_id_in_token.append(type_task_id[task])
                         sel_name_of_objects = 'SELECT ' \
                                               '(SELECT `name` FROM `subjects` WHERE id = %s), ' \
@@ -3148,6 +3135,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                                               '(SELECT `name` FROM `courses` WHERE id = %s), ' \
                                               '(SELECT `name` FROM `year_enter` WHERE id = %s), ' \
                                               '(SELECT `name` FROM `periods` WHERE id = %s), ' \
+                                              '(SELECT `name` FROM `organization` WHERE id = %s), ' \
                                               '(SELECT `name` FROM `type_tasks` WHERE id = %s), ' \
                                               '(SELECT `name` FROM `blocks` WHERE id = %s),' \
                                               '(SELECT `name` FROM `tasks` WHERE id = %s) ' \
@@ -3158,7 +3146,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                         write += 1
                         sel_id_token = 'SELECT `id` FROM `tokens` WHERE `subjects_id` = %s AND `teachers_id` = %s AND ' \
                                        '`groups_id` = %s AND `courses_id` = %s AND `year_enter_id` = %s AND ' \
-                                       '`periods_id` = %s AND `type_tasks_id` = %s ' \
+                                       '`periods_id` = %s AND `organization_id` = %s AND `type_tasks_id` = %s ' \
                                        'AND `blocks_id` = %s AND `tasks_id` = %s'
                         cursor.execute(sel_id_token, all_id_in_token)
                         id_token = cursor.fetchone()[0]
@@ -3192,7 +3180,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                         id_teor = 'SELECT `id` FROM `tokens` ' \
                                   'WHERE `subjects_id` = %s AND `teachers_id` = %s ' \
                                   'AND `groups_id` = %s AND `courses_id` = %s ' \
-                                  'AND `year_enter_id` = %s AND `periods_id` = %s ' \
+                                  'AND `year_enter_id` = %s AND `periods_id` = %s AND `organization` = %s ' \
                                   'AND `type_tasks_id` = %s AND `blocks_id` = %s'
                         cursor.execute(id_teor, type_t)
                         check_teor = cursor.fetchall()
@@ -3211,6 +3199,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                             all_id_in_token[5] = type_t[5]
                             all_id_in_token[6] = type_t[6]
                             all_id_in_token[7] = type_t[7]
+                            all_id_in_token[8] = type_t[8]
                             all_id_in_token.append(type_task_id[task])
                             sel_name_of_objects = 'SELECT ' \
                                                   '(SELECT `name` FROM `subjects` WHERE id = %s), ' \
@@ -3219,6 +3208,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                                                   '(SELECT `name` FROM `courses` WHERE id = %s), ' \
                                                   '(SELECT `name` FROM `year_enter` WHERE id = %s), ' \
                                                   '(SELECT `name` FROM `periods` WHERE id = %s), ' \
+                                                  '(SELECT `name` FROM `organization` WHERE id = %s), ' \
                                                   '(SELECT `name` FROM `type_tasks` WHERE id = %s), ' \
                                                   '(SELECT `name` FROM `blocks` WHERE id = %s), ' \
                                                   '(SELECT `name` FROM `tasks` WHERE id = %s) ' \
@@ -3227,7 +3217,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                             search_data = cursor.fetchone()
                             sel_id_token = 'SELECT `id` FROM `tokens` WHERE `subjects_id` = %s AND `teachers_id` = %s AND ' \
                                            '`groups_id` = %s AND `courses_id` = %s AND `year_enter_id` = %s AND ' \
-                                           '`periods_id` = %s AND `type_tasks_id` = %s ' \
+                                           '`periods_id` = %s AND `organization_id` = %s AND `type_tasks_id` = %s ' \
                                            'AND `blocks_id` = %s AND `tasks_id` = %s'
                             cursor.execute(sel_id_token, all_id_in_token)
                             id_token = cursor.fetchone()[0]
@@ -3289,8 +3279,14 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         ob_id.append(self.combo5.currentText())
         cursor.execute(sel_ob_id, ob_id)
         blocks_id.append(cursor.fetchone()[0])
+        sel_org_id = 'SELECT `id` FROM `organization` WHERE `name` = %s'
+        ob_id = []
+        ob_id.append(self.combo6.currentText())
+        cursor.execute(sel_org_id, ob_id)
+        blocks_id.append(cursor.fetchone()[0])
         sel_blocks_id = 'SELECT DISTINCT blocks_id FROM `tokens` WHERE `subjects_id` = %s AND `teachers_id` = %s AND ' \
-                        '`groups_id` = %s AND `courses_id` = %s AND `year_enter_id` = %s AND `periods_id` = %s'
+                        '`groups_id` = %s AND `courses_id` = %s AND `year_enter_id` = %s AND `periods_id` = %s AND ' \
+                        '`organization_id` = %s'
         cursor.execute(sel_blocks_id, blocks_id)
         self.result_blocks_id = cursor.fetchall()
         self.blocks_arr = []
@@ -3306,36 +3302,39 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         if ok:
             self.tokens_line.setText(str(text))
         for i in range(0, len(self.blocks_arr)):
-            text, ok = QInputDialog.getText(self, 'Количество заданий', 'Количество теоретических заданий из раздела: ' + str(self.blocks_arr[i]))
+            text, ok = QInputDialog.getText(self, 'Количество заданий',
+                                            'Количество теоретических заданий из раздела: ' + str(self.blocks_arr[i]))
             if ok:
                 self.num_blocks_t.append(int(text))
                 self.tasks_line.setText(str(text))
         if self.practic == True:
             for i in range(0, len(self.blocks_arr)):
-                text, ok = QInputDialog.getText(self, 'Количество заданий', 'Количество приктических заданий из раздела: ' + str(self.blocks_arr[i]))
+                text, ok = QInputDialog.getText(self, 'Количество заданий',
+                                                'Количество приктических заданий из раздела: ' + str(
+                                                    self.blocks_arr[i]))
                 if ok:
                     self.num_blocks_p.append(int(text))
                     self.tasks_line.setText(str(text))
         blocks_id.append(0)
         blocks_id.append(0)
         right = True
-        for i in range(0, len(self.result_blocks_id)-1):
+        for i in range(0, len(self.result_blocks_id) - 1):
             cursor.execute("SELECT `id` FROM `type_tasks` WHERE `name` = 'теория'")
             blocks_id[6] = self.result_blocks_id[i][0]
             blocks_id[7] = cursor.fetchone()[0]
             sel_count_tasks = "SELECT COUNT(`id`) FROM `tokens` WHERE `subjects_id` = %s AND `teachers_id` = %s AND " \
-                        "`groups_id` = %s AND `courses_id` = %s AND `year_enter_id` = %s AND `periods_id` = %s AND " \
-                        "`blocks_id` = %s AND `type_tasks_id` = %s"
+                              "`groups_id` = %s AND `courses_id` = %s AND `year_enter_id` = %s AND `periods_id` = %s " \
+                              "AND `organization_id` = %s AND `blocks_id` = %s AND `type_tasks_id` = %s"
             cursor.execute(sel_count_tasks, blocks_id)
             count_ = cursor.fetchone()[0]
             if self.practic == True:
-                if count_ < (int(self.num_blocks_p[i])*int(self.tokens_line.text())):
+                if count_ < (int(self.num_blocks_p[i]) * int(self.tokens_line.text())):
                     self.dlg = QMessageBox()
                     self.dlg.addButton("Да", QMessageBox.AcceptRole)
                     self.dlg.addButton("Нет", QMessageBox.AcceptRole)
                     self.dlg.setIcon(QMessageBox.Information)
                     self.dlg.setWindowTitle("Сохранение")
-                    number = (int(self.num_blocks_p[i])*int(self.tokens_line.text())) - int(count_)
+                    number = (int(self.num_blocks_p[i]) * int(self.tokens_line.text())) - int(count_)
                     self.dlg.setInformativeText(
                         "Не хватает " + str(number) + " вопросов для генерации билетов! Всё равно сгенерировать?")
                     bttn = self.dlg.exec()
@@ -3346,8 +3345,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                     cursor.execute("SELECT `id` FROM `type_tasks` WHERE `name` = 'практика'")
                     blocks_id[7] = cursor.fetchone()[0]
                     sel_count_tasks = "SELECT COUNT(`id`) FROM `tokens` WHERE `subjects_id` = %s AND `teachers_id` = %s AND " \
-                                      "`groups_id` = %s AND `courses_id` = %s AND `year_enter_id` = %s AND `periods_id` = %s AND " \
-                                      "`blocks_id` = %s AND `type_tasks_id` = %s"
+                                      "`groups_id` = %s AND `courses_id` = %s AND `year_enter_id` = %s AND `periods_id` = %s " \
+                                      "AND `organization_id` = %s AND `blocks_id` = %s AND `type_tasks_id` = %s"
                     cursor.execute(sel_count_tasks, blocks_id)
                     count_ = cursor.fetchone()[0]
                     if count_ < (int(self.num_blocks_p[i]) * int(self.tokens_line.text())):
