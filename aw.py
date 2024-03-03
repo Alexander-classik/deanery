@@ -594,7 +594,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         conn.commit()
         cursor.execute(
             'create table if not exists `students` (id int primary key auto_increment, `name` text, '
-            '`number_stud_tiket` varchar(5), `groups_id` int, `courses_id` int, `year_enter_id` int, '
+            '`number_stud_tiket` varchar(5), `num_group` int, `groups_id` int, `courses_id` int, `year_enter_id` int, '
             '`organization_id` int, foreign key (`groups_id`) references `groups` (id), foreign key (`courses_id`) '
             'references `courses` (id), foreign key (`year_enter_id`) references `year_enter` (id), foreign key ('
             '`organization_id`) references `organization` (`id`))')
@@ -612,12 +612,13 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         cursor.execute(
             'create table if not exists `schedule` (id int primary key auto_increment, `subjects_id` int, '
             '`teachers_id` int, `groups_id` int, `courses_id` int, `year_enter_id` int, `num_lessons_id` int, '
-            '`name_day_id` int, `type_week_id` int, `organization_id` int, foreign key (`subjects_id`) references '
-            '`subjects` (id), foreign key (`teachers_id`) references `teachers` (id), foreign key (`groups_id`) '
-            'references `groups` (id), foreign key (`courses_id`) references `courses` (id), foreign key ('
-            '`year_enter_id`) references `year_enter` (id), foreign key (`num_lessons_id`) references `num_lessons` ('
-            'id), foreign key (`name_day_id`) references `name_day` (id), foreign key (`type_week_id`) references '
-            '`type_week` (id), foreign key (`organization_id`) references `organization` (id))')
+            '`name_day_id` int, `type_week_id` int, `organization_id` int, `num_group` int, foreign key ('
+            '`subjects_id`) references `subjects` (id), foreign key (`teachers_id`) references `teachers` (id), '
+            'foreign key (`groups_id`) references `groups` (id), foreign key (`courses_id`) references `courses` ('
+            'id), foreign key (`year_enter_id`) references `year_enter` (id), foreign key (`num_lessons_id`) '
+            'references `num_lessons` (id), foreign key (`name_day_id`) references `name_day` (id), foreign key ('
+            '`type_week_id`) references `type_week` (id), foreign key (`organization_id`) references `organization` ('
+            'id))')
         conn.commit()
         cursor.execute(
             'create table if not exists `schedule_changes` (id int primary key auto_increment, `groups_id` int, '

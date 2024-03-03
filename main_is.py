@@ -2742,11 +2742,12 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 result = []
 
         # Парс БИЛЕТОВ
+        arr = list(df.head(0))
         for i in range(0, len(df['Дисциплины'].tolist())):
             add_ser = 'INSERT INTO `tokens` (`subjects_id`, `tasks_id`, `blocks_id`, `type_tasks_id`, `teachers_id`, ' \
                       '`groups_id`, `courses_id`, `year_enter_id`, periods_id, `organization_id`) ' \
                       'VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'
-            for j in range(10):
+            for j in range(0, len(arr)):
                 data_db = []
                 if j == 0:
                     data_db.append(df.values.tolist()[i][j])
