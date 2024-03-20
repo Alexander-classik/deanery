@@ -610,36 +610,39 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             '`date_week` date, foreign key (`type_week_id`) references `type_week` (id))')
         conn.commit()
         cursor.execute(
+            'create table if not exists `sprav_schedule` (id int primary key auto_increment, `name` text)')
+        conn.commit()
+        cursor.execute(
             'create table if not exists `schedule` (id int primary key auto_increment, `subjects_id` int, '
             '`teachers_id` int, `groups_id` int, `courses_id` int, `year_enter_id` int, `num_lessons_id` int, '
-            '`name_day_id` int, `type_week_id` int, `organization_id` int, `num_group` int, foreign key ('
+            '`name_day_id` int, `type_week_id` int, `organization_id` int, `num_group` int, `sprav_schedule_id` int, foreign key ('
             '`subjects_id`) references `subjects` (id), foreign key (`teachers_id`) references `teachers` (id), '
             'foreign key (`groups_id`) references `groups` (id), foreign key (`courses_id`) references `courses` ('
             'id), foreign key (`year_enter_id`) references `year_enter` (id), foreign key (`num_lessons_id`) '
             'references `num_lessons` (id), foreign key (`name_day_id`) references `name_day` (id), foreign key ('
             '`type_week_id`) references `type_week` (id), foreign key (`organization_id`) references `organization` ('
-            'id))')
+            'id), foreign key (`sprav_schedule_id`) references `sprav_schedule` (id))')
         conn.commit()
         cursor.execute(
             'create table if not exists `schedule_changes` (id int primary key auto_increment, `groups_id` int, '
             '`courses_id` int, `year_enter_id` int, `num_lessons_id` int, `subjects_id` int, `teachers_id` int, '
-            '`date_changes` date, `organization_id` int, foreign key (`groups_id`) references `groups` (id), '
+            '`date_changes` date, `organization_id` int, `num_group` int, foreign key (`groups_id`) references `groups` (id), '
             'foreign key (`courses_id`) references `courses` (id), foreign key (`year_enter_id`) references '
             '`year_enter` (id), foreign key (`num_lessons_id`) references `num_lessons` (id), foreign key ('
             '`subjects_id`) references `subjects` (id), foreign key (`teachers_id`) references `teachers` (id), '
             'foreign key (`organization_id`) references `organization` (id))')
         conn.commit()
         cursor.execute(
-            'create table if not exists `lessons_plan` (id int primary key auto_increment, `subjects_id` int, '
-            '`groups_id` int, `courses_id` int, `year_enter_id` int, `number` int, `organization_id` int, foreign key '
+            'create table if not exists `lessons_plan` (id int primary key auto_increment, `subjects_id` int, `theme` text,'
+            '`groups_id` int, `courses_id` int, `year_enter_id` int, `number` int, `organization_id` int, `term` int, foreign key '
             '(`subjects_id`) references `subjects` (`id`), foreign key (`groups_id`) references `groups` (`id`), '
             'foreign key (`courses_id`) references `courses` (`id`), foreign key (`year_enter_id`) references '
             '`year_enter` (`id`), foreign key (`organization_id`) references `organization` (`id`))')
         conn.commit()
         cursor.execute(
             'create table if not exists `completed_classes` (id int primary key auto_increment, `lessons_plan_id` '
-            'int, `teachers_id` int, `number` int, foreign key (`lessons_plan_id`) references `lessons_plan` (`id`), '
-            'foreign key (`teachers_id`) references `teachers` (`id`))')
+            'int, `teachers_id` int, `num_group` int, date_classes date, foreign key ('
+            '`lessons_plan_id`) references `lessons_plan` (`id`), foreign key (`teachers_id`) references `teachers` (`id`))')
         conn.commit()
 
         type_week_arr = ['числитель', 'знаменатель']

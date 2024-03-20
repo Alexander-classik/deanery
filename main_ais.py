@@ -528,6 +528,10 @@ class Ui_MainWindow(QtWidgets.QWidget):
         self.open_pars_sc.setGeometry(QtCore.QRect(250, 130, 89, 25))
         self.open_pars_sc.setObjectName("open_pars_sc")
         self.open_pars_sc.findChild(QPushButton, 'open_pars_sc')
+        self.open_pars_th = QtWidgets.QPushButton(self.centralwidget)
+        self.open_pars_th.setGeometry(QtCore.QRect(250, 130, 89, 25))
+        self.open_pars_th.setObjectName("open_pars_th")
+        self.open_pars_th.findChild(QPushButton, 'open_pars_th')
         self.pars_s = QtWidgets.QPushButton(self.centralwidget)
         self.pars_s.setGeometry(QtCore.QRect(30, 150, 241, 55))
         self.pars_s.setObjectName("pars_s")
@@ -536,6 +540,10 @@ class Ui_MainWindow(QtWidgets.QWidget):
         self.pars_sc.setGeometry(QtCore.QRect(30, 150, 241, 55))
         self.pars_sc.setObjectName("pars_sc")
         self.pars_sc.findChild(QPushButton, 'pars_sc')
+        self.pars_th = QtWidgets.QPushButton(self.centralwidget)
+        self.pars_th.setGeometry(QtCore.QRect(30, 150, 241, 55))
+        self.pars_th.setObjectName("pars_th")
+        self.pars_th.findChild(QPushButton, 'pars_th')
         self.pars_date_week = QtWidgets.QPushButton(self.centralwidget)
         self.pars_date_week.setGeometry(QtCore.QRect(30, 150, 241, 55))
         self.pars_date_week.setObjectName("pars_date_week")
@@ -560,12 +568,18 @@ class Ui_MainWindow(QtWidgets.QWidget):
         self.label1 = QtWidgets.QLabel(self.centralwidget)
         self.label1.setGeometry(QtCore.QRect(10, 110, 241, 17))
         self.label1.setObjectName("label1")
+        self.label_3 = QtWidgets.QLabel(self.centralwidget)
+        self.label_3.setGeometry(QtCore.QRect(10, 110, 241, 17))
+        self.label_3.setObjectName("label_3")
         self.filename1 = QtWidgets.QLineEdit(self.centralwidget)
         self.filename1.setGeometry(QtCore.QRect(10, 130, 221, 25))
         self.filename1.setObjectName("filename1")
         self.filename_2 = QtWidgets.QLineEdit(self.centralwidget)
         self.filename_2.setGeometry(QtCore.QRect(10, 130, 221, 25))
         self.filename_2.setObjectName("filename_2")
+        self.filename_3 = QtWidgets.QLineEdit(self.centralwidget)
+        self.filename_3.setGeometry(QtCore.QRect(10, 130, 221, 25))
+        self.filename_3.setObjectName("filename_3")
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 2560, 1600))
@@ -580,15 +594,18 @@ class Ui_MainWindow(QtWidgets.QWidget):
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "АИС Деканат"))
+        self.label_3.setText(_translate("MainWindow", "Укажите путь к папке:"))
         self.label_2.setText(_translate("MainWindow", "Укажите путь к папке:"))
         self.label1.setText(_translate("MainWindow", "Укажите путь к файлу:"))
         self.label.setText(_translate("MainWindow", "Укажите путь к файлу:"))
         self.open_pars_date_week.setText(_translate("MainWindow", "Обзор..."))
         self.open_pars_s.setText(_translate("MainWindow", "Обзор..."))
         self.open_pars_sc.setText(_translate("MainWindow", "Обзор..."))
+        self.open_pars_th.setText(_translate("MainWindow", "Обзор..."))
         self.pars_date_week.setText(_translate("MainWindow", "Загрузить"))
         self.pars_s.setText(_translate("MainWindow", "Загрузить"))
         self.pars_sc.setText(_translate("MainWindow", "Загрузить"))
+        self.pars_th.setText(_translate("MainWindow", "Загрузить"))
         self.auto_copy_btn.setText(_translate("MainWindow", "Автоматическое копирование"))
         self.copy_btn.setText(_translate("MainWindow", "Ручное копирование"))
 
@@ -606,21 +623,26 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.reserve_copy_ = QWidget()
         self.parser_s = QWidget()
         self.parser_sc = QWidget()
+        self.parser_th = QWidget()
         self.tabWidget = QTabWidget(self.centralwidget)
         self.tabWidget.addTab(self.parser_date_week_, "Загрузка даты типов недели")
         self.tabWidget.addTab(self.reserve_copy_, "Резервное копирование")
         self.tabWidget.addTab(self.parser_s, "Загрузка основного расписания")
         self.tabWidget.addTab(self.parser_sc, "Загрузка замен в расписании")
+        self.tabWidget.addTab(self.parser_th, "Загрузка часов тем")
         self.parser_schedule_Ui()
         self.parser_schedule_changes_Ui()
+        self.parser_th_Ui()
         self.parser_date_week_Ui()
         self.reserve_copy_Ui()
         self.open_pars_date_week.clicked.connect(self.pars_win_date_week)
         self.pars_date_week.clicked.connect(self.parser_date_week)
         self.open_pars_s.clicked.connect(self.pars_win_schedule)
         self.open_pars_sc.clicked.connect(self.pars_win_schedule_changes)
+        self.open_pars_th.clicked.connect(self.pars_win_th)
         self.pars_s.clicked.connect(self.parser_schedule)
         self.pars_sc.clicked.connect(self.parser_schedule_changes)
+        self.pars_th.clicked.connect(self.parser_theme_h)
         self.copy_btn.clicked.connect(self.reserve_copy)
 
     def reserve_copy_Ui(self):
@@ -634,6 +656,128 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def reserve_copy(self):
         self.Copy = ReserveCopy()
         self.Copy.show()
+
+    def parser_th_Ui(self):
+        cursor.execute('SELECT `name` FROM `organization`')
+        name_org = cursor.fetchall()
+        self.combo73 = QComboBox(self)
+        for i in range(0, len(name_org)):
+            self.combo73.addItem(name_org[i][0])
+        vl = QVBoxLayout(self)
+        vl.addWidget(self.combo73)
+        hlayout = QHBoxLayout(self)
+        self.tabWidget = QTabWidget(self.centralwidget)
+        hlayout.addWidget(self.label_3)
+        hlayout.addWidget(self.filename_3)
+        hlayout.addWidget(self.open_pars_th)
+        vlayout = QVBoxLayout(self)
+        vlayout.addLayout(vl)
+        vlayout.addLayout(hlayout)
+        vlayout.addWidget(self.pars_th)
+        self.tabWidget.setTabText(4, "ParserTH")
+        self.parser_th.setLayout(vlayout)
+
+    def parser_theme_h(self):
+        df = pd.read_excel(io=self.file_, engine='openpyxl', sheet_name='Лист1')
+        arr = list(df.head(0))
+
+        # Парс excel
+        result = []
+
+        # Парс ГРУПП
+        for i in range(0, len(df[arr[2]].tolist())):
+            add_ser = 'INSERT INTO `groups` (`name`) VALUES (%s)'
+            result.append(df[arr[2]].tolist()[i])
+            check_input = 'SELECT * FROM `groups` WHERE `name` = %s'
+            cursor.execute(check_input, result)
+            if cursor.fetchone() == None:
+                cursor.execute(add_ser, result)
+                conn.commit()
+                result = []
+            else:
+                result = []
+
+        # Парс Курс
+        for i in range(0, len(df[arr[3]].tolist())):
+            add_ser = 'INSERT INTO `courses` (`name`) VALUES (%s)'
+            result.append(df[arr[3]].tolist()[i])
+            check_input = 'SELECT * FROM `courses` WHERE `name` = %s'
+            cursor.execute(check_input, result)
+            if cursor.fetchone() == None:
+                cursor.execute(add_ser, result)
+                conn.commit()
+                result = []
+            else:
+                result = []
+
+        # Парс ГОДА ПОСТУАЛЕНИЯ
+        for i in range(0, len(df[arr[4]].tolist())):
+            add_ser = 'INSERT INTO `year_enter` (`name`) VALUES (%s)'
+            result.append(df[arr[4]].tolist()[i])
+            check_input = 'SELECT * FROM `year_enter` WHERE `name` = %s'
+            cursor.execute(check_input, result)
+            if cursor.fetchone() == None:
+                cursor.execute(add_ser, result)
+                conn.commit()
+                result = []
+            else:
+                result = []
+
+        # Парс ЧАСОВ ДЛЯ ТЕМ
+        arr = list(df.head(0))
+        for i in range(0, len(df[arr[0]].tolist())):
+            add_ser = 'INSERT INTO `lessons_plan` (`subjects_id`, `theme`, `groups_id`, `courses_id`, `year_enter_id`, ' \
+                      '`number`, `organization_id`, `term`) ' \
+                      'VALUES (%s, %s, %s, %s, %s, %s, %s, %s)'
+            for j in range(0, len(arr)):
+                data_db = []
+                if j == 0:
+                    data_db.append(df.values.tolist()[i][j])
+                    check_input = 'SELECT `id` FROM `subjects` WHERE `name` LIKE %s'
+                    cursor.execute(check_input, data_db)
+                    result.append(cursor.fetchone()[0])
+                elif j == 1:
+                    result.append(df.values.tolist()[i][j])
+                elif j == 2:
+                    data_db.append(df.values.tolist()[i][j])
+                    check_input = 'SELECT `id` FROM `groups` WHERE `name` = %s'
+                    cursor.execute(check_input, data_db)
+                    result.append(cursor.fetchone()[0])
+                elif j == 3:
+                    data_db.append(df.values.tolist()[i][j])
+                    check_input = 'SELECT `id` FROM `courses` WHERE `name` = %s'
+                    cursor.execute(check_input, data_db)
+                    result.append(cursor.fetchone()[0])
+                elif j == 4:
+                    data_db.append(df.values.tolist()[i][j])
+                    check_input = 'SELECT `id` FROM `year_enter` WHERE `name` = %s'
+                    cursor.execute(check_input, data_db)
+                    result.append(cursor.fetchone()[0])
+                elif j == 5:
+                    result.append(int(df.values.tolist()[i][j]))
+                elif j == 6:
+                    data_db.append(self.combo73.currentText())
+                    check_input = 'SELECT `id` FROM `organization` WHERE `name` = %s'
+                    cursor.execute(check_input, data_db)
+                    result.append(cursor.fetchone()[0])
+                    result.append(df.values.tolist()[i][j])
+            check_input = 'SELECT * FROM `lessons_plan` WHERE `subjects_id` = %s AND `theme` = %s AND `groups_id` = %s AND ' \
+                          '`courses_id` = %s AND `year_enter_id` = %s AND `number` = %s AND `organization_id` = %s AND ' \
+                          '`term` = %s'
+            cursor.execute(check_input, result)
+            if cursor.fetchone() == None:
+                cursor.execute(add_ser, result)
+                conn.commit()
+                result = []
+            else:
+                result = []
+
+    def pars_win_th(self):
+        self.open_pars_th.hide()
+        fname, _ = QtWidgets.QFileDialog.getOpenFileName(self, 'Open file', './', '(*.xls *.xlsx)')
+        if fname:
+            self.filename_3.setText(fname)
+            self.file_ = str(fname)
 
     def parser_date_week_Ui(self):
         hlayout = QHBoxLayout(self)
@@ -713,6 +857,18 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # Парс excel
         result = []
 
+        # Парс НАЗВАНИЯ РАСПИСНАИЯ
+        add_ser = 'INSERT INTO `sprav_schedule` (`name`) VALUES (%s)'
+        result.append(self.file_s)
+        check_input = 'SELECT * FROM `sprav_schedule` WHERE `name` = %s'
+        cursor.execute(check_input, result)
+        if cursor.fetchone() == None:
+            cursor.execute(add_ser, result)
+            conn.commit()
+            result = []
+        else:
+            result = []
+
         for r in sheet.merged_cells.ranges:
             cl, rl, cr, rr = r.bounds  # границы объединенной области
             rl -= 2
@@ -776,7 +932,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 res.append(gr)
                 gr = ''
         for i in range(0, len(res)):
-            result.append(res[0])
+            result.append(res[i])
             add_ser = 'INSERT INTO `groups` (`name`) VALUES (%s)'
             check_input = 'SELECT * FROM `groups` WHERE `name` = %s'
             cursor.execute(check_input, result)
@@ -820,9 +976,21 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                                 break
                             else:
                                 tea += df[arr[n]][j][i]
+                    right = False
+                    dis_arr = []
+                    for i in range(0, len(dis)):
+                        dis_arr.append(dis[i])
+                    dis = ''
+                    while right != True:
+                        if dis_arr[-1:][0] == ' ':
+                            dis_arr.pop(-1)
+                        else:
+                            right = True
+                    for i in range(0, len(dis_arr)):
+                        dis += dis_arr[i]
                     result.append(dis)
                     add_ser = 'INSERT INTO `subjects` (`name`) VALUES (%s)'
-                    check_input = 'SELECT * FROM `subjects` WHERE `name` = %s'
+                    check_input = 'SELECT * FROM `subjects` WHERE `name` LIKE %s'
                     cursor.execute(check_input, result)
                     if cursor.fetchone() == None:
                         cursor.execute(add_ser, result)
@@ -982,6 +1150,18 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                             break
                         else:
                             tea += df[arr[3]][j][i]
+                right = False
+                dis_arr = []
+                for i in range(0, len(dis)):
+                    dis_arr.append(dis[i])
+                dis = ''
+                while right != True:
+                    if dis_arr[-1:][0] == ' ':
+                        dis_arr.pop(-1)
+                    else:
+                        right = True
+                for i in range(0, len(dis_arr)):
+                    dis += dis_arr[i]
                 res_d.append(dis)
                 res_t.append(tea)
                 dis = ''
@@ -999,8 +1179,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             res_c = int(current_y) - int(ye)
         for i in range(0, len(df[arr[3]].tolist())):
             add_ser = 'INSERT INTO `schedule` (`name_day_id`, `num_lessons_id`, `type_week_id`, `groups_id`, ' \
-                      '`year_enter_id`, `subjects_id`, `teachers_id`, `courses_id`, num_group, `organization_id`) ' \
-                      'VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'
+                      '`year_enter_id`, `subjects_id`, `teachers_id`, `courses_id`, num_group, `organization_id`, ' \
+                      '`sprav_schedule_id`) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'
             for n in range(0, len(res_g)):
                 for j in range(0, len(arr)):
                     data_db = []
@@ -1061,9 +1241,15 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                         check_input = 'SELECT `id` FROM `organization` WHERE `name` = %s'
                         cursor.execute(check_input, data_db)
                         result.append(cursor.fetchone()[0])
+                        data_db = []
+                        data_db.append(self.file_s)
+                        check_input = 'SELECT `id` FROM `sprav_schedule` WHERE `name` = %s'
+                        cursor.execute(check_input, data_db)
+                        result.append(cursor.fetchone()[0])
                 check_input = 'SELECT * FROM `schedule` WHERE `name_day_id` = %s AND `num_lessons_id` = %s AND ' \
                               '`type_week_id` = %s AND `groups_id` = %s AND `year_enter_id` = %s AND `subjects_id` = %s ' \
-                              'AND `teachers_id` = %s AND `courses_id` = %s AND num_group = %s AND `organization_id` = %s'
+                              'AND `teachers_id` = %s AND `courses_id` = %s AND num_group = %s AND `organization_id` = %s ' \
+                              'AND `sprav_schedule_id` = %s'
                 cursor.execute(check_input, result)
                 if cursor.fetchone() == None:
                     cursor.execute(add_ser, result)
@@ -1112,8 +1298,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         current_m = datetime.now().strftime('%m')
         for i in range(0, len(df[arr[3]].tolist())):
             add_ser = 'INSERT INTO `schedule` (`name_day_id`, `num_lessons_id`, `type_week_id`, `groups_id`, ' \
-                      '`year_enter_id`, `subjects_id`, `teachers_id`, `courses_id`, num_group, `organization_id`) ' \
-                      'VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'
+                      '`year_enter_id`, `subjects_id`, `teachers_id`, `courses_id`, num_group, `organization_id`, `sprav_schedule_id`) ' \
+                      'VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'
             data_nd = 0
             data_nl = 0
             data_tw = 0
@@ -1159,6 +1345,18 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                                     break
                                 else:
                                     tea += df[arr[j]][i][n]
+                        right = False
+                        dis_arr = []
+                        for s in range(0, len(dis)):
+                            dis_arr.append(dis[s])
+                        dis = ''
+                        while right != True:
+                            if dis_arr[-1:][0] == ' ':
+                                dis_arr.pop(-1)
+                            else:
+                                right = True
+                        for s in range(0, len(dis_arr)):
+                            dis += dis_arr[s]
                     else:
                         dis = None
                         tea = None
@@ -1198,9 +1396,15 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                     check_input = 'SELECT `id` FROM `organization` WHERE `name` = %s'
                     cursor.execute(check_input, data_db)
                     result.append(cursor.fetchone()[0])
+                    data_db = []
+                    data_db.append(self.file_s)
+                    check_input = 'SELECT `id` FROM `sprav_schedule` WHERE `name` = %s'
+                    cursor.execute(check_input, data_db)
+                    result.append(cursor.fetchone()[0])
                     check_input = 'SELECT * FROM `schedule` WHERE `name_day_id` = %s AND `num_lessons_id` = %s AND ' \
                                   '`type_week_id` = %s AND `groups_id` = %s AND `year_enter_id` = %s AND `subjects_id` = %s ' \
-                                  'AND `teachers_id` = %s AND `courses_id` = %s AND num_group = %s AND `organization_id` = %s'
+                                  'AND `teachers_id` = %s AND `courses_id` = %s AND num_group = %s AND `organization_id` = %s ' \
+                                  'AND `sprav_schedule_id` = %s'
                     cursor.execute(check_input, result)
                     if cursor.fetchone() == None:
                         cursor.execute(add_ser, result)
@@ -1262,9 +1466,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         date_changes = date(int(y), int(m), int(d))
         time_format = "%Y-%m-%d"
         for i in range(1, len(df[arr[0]].tolist())):
+            nl = []
             add_ser = 'INSERT INTO `schedule_changes` (`groups_id`, `courses_id`, `year_enter_id`, `num_lessons_id`, ' \
-                      '`teachers_id`, `subjects_id`, `date_changes`, `organization_id`) VALUES (%s, %s, %s, %s, %s, ' \
-                      '%s, %s, %s)'
+                      '`teachers_id`, `subjects_id`, `date_changes`, `organization_id`, `num_group`) VALUES (' \
+                      '%s, %s, %s, %s, %s, %s, %s, %s, %s)'
             for j in range(0, len(arr[0])):
                 data_db = []
                 if j == 0:
@@ -1298,37 +1503,78 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                     cursor.execute(check_input, data_db)
                     result.append(cursor.fetchone()[0])
                 if j == 1:
-                    data_db.append(str(df[arr[j]][i])+'.0')
-                    check_input = 'SELECT `id` FROM `num_lessons` WHERE `name` = %s'
-                    cursor.execute(check_input, data_db)
-                    result.append(cursor.fetchone()[0])
+                    if str(df[arr[j]][i]).find(',') > 0:
+                        for s in range(0, len(df[arr[j]][i])):
+                            if s < str(df[arr[j]][i]).find(',') or s > str(df[arr[j]][i]).find(',') and str(df[arr[j]][i][s]) != ' ':
+                                nl.append(str(df[arr[j]][i][s]))
+                    else:
+                        data_db.append(str(df[arr[j]][i])+'.0')
+                        check_input = 'SELECT `id` FROM `num_lessons` WHERE `name` = %s'
+                        cursor.execute(check_input, data_db)
+                        result.append(cursor.fetchone()[0])
                 if j == 5:
-                    data_db.append(str(df[arr[j]][i]))
-                    check_input = 'SELECT `id` FROM `teachers` WHERE `name` = %s'
-                    cursor.execute(check_input, data_db)
-                    result.append(cursor.fetchone()[0])
+                    if df[arr[j]][i] == '-':
+                        result.append(None)
+                    else:
+                        data_db.append(str(df[arr[j]][i]))
+                        check_input = 'SELECT `id` FROM `teachers` WHERE `name` = %s'
+                        cursor.execute(check_input, data_db)
+                        result.append(cursor.fetchone()[0])
                 if j == 6:
-                    data_db.append(str(df[arr[j]][i]))
-                    check_input = 'SELECT `id` FROM `subjects` WHERE `name` = %s'
-                    cursor.execute(check_input, data_db)
-                    result.append(cursor.fetchone()[0])
+                    if df[arr[j]][i] == '-':
+                        result.append(None)
+                    else:
+                        data_db.append(str(df[arr[j]][i]))
+                        check_input = 'SELECT `id` FROM `subjects` WHERE `name` = %s'
+                        cursor.execute(check_input, data_db)
+                        result.append(cursor.fetchone()[0])
                     result.append(f"{date_changes:{time_format}}")
                     data_db = []
                     data_db.append(self.combo71.currentText())
                     check_input = 'SELECT `id` FROM `organization` WHERE `name` = %s'
                     cursor.execute(check_input, data_db)
                     result.append(cursor.fetchone()[0])
-            print(result)
-            check_input = 'SELECT * FROM `schedule_changes` WHERE `groups_id` = %s AND `courses_id` = %s AND ' \
-                          '`year_enter_id` = %s AND `num_lessons_id` = %s AND `teachers_id` = %s AND `subjects_id` ' \
-                          '= %s AND `date_changes` = %s AND `organization_id` = %s'
-            cursor.execute(check_input, result)
-            if cursor.fetchone() == None:
-                cursor.execute(add_ser, result)
-                conn.commit()
-                result = []
+                    if df[arr[j]][i].find('/') > 0:
+                        for s in range(0, len(df[arr[j]][i])):
+                            if s > df[arr[j]][i].find('/'):
+                                result.append(int(df[arr[j]][i][s]))
+                                break
+                    else:
+                        result.append(1)
+            if len(nl) > 0:
+                result_old = list(result)
+                for j in range(0, len(nl)):
+                    result = list(result_old)
+                    data_db = []
+                    data_db.append(str(nl[j]) + '.0')
+                    check_input = 'SELECT `id` FROM `num_lessons` WHERE `name` = %s'
+                    cursor.execute(check_input, data_db)
+                    result.append(cursor.fetchone()[0])
+                    add_ser = 'INSERT INTO `schedule_changes` (`groups_id`, `courses_id`, `year_enter_id`, ' \
+                              '`teachers_id`, `subjects_id`, `date_changes`, `organization_id`, `num_group`, `num_lessons_id`) VALUES (' \
+                              '%s, %s, %s, %s, %s, %s, %s, %s, %s)'
+                    check_input = 'SELECT * FROM `schedule_changes` WHERE `groups_id` = %s AND `courses_id` = %s AND ' \
+                                  '`year_enter_id` = %s AND `teachers_id` = %s AND `subjects_id` = %s AND ' \
+                                  '`date_changes` = %s AND `organization_id` = %s AND `num_group` = %s AND ' \
+                                  '`num_lessons_id` = %s'
+                    cursor.execute(check_input, result)
+                    if cursor.fetchone() == None:
+                        cursor.execute(add_ser, result)
+                        conn.commit()
+                        result = []
+                    else:
+                        result = []
             else:
-                result = []
+                check_input = 'SELECT * FROM `schedule_changes` WHERE `groups_id` = %s AND `courses_id` = %s AND ' \
+                              '`year_enter_id` = %s AND `num_lessons_id` = %s AND `teachers_id` = %s AND `subjects_id` ' \
+                              '= %s AND `date_changes` = %s AND `organization_id` = %s AND `num_group` = %s'
+                cursor.execute(check_input, result)
+                if cursor.fetchone() == None:
+                    cursor.execute(add_ser, result)
+                    conn.commit()
+                    result = []
+                else:
+                    result = []
 
     def parser_schedule_changes_Ui(self):
         cursor.execute('SELECT `name` FROM `organization`')
@@ -1382,11 +1628,7 @@ if __name__ == "__main__":
 #+++++++++++++++++++++++++++++++++++++++++++++++++++
 '''
 Доделать создание резервной копии !!!!!!<---
-Сделать парсер замен в раснисание
-Сделать парсер часов занятий
-Сделать автоматический подстчёт часов
-Сделать график с текущеми показателями выполнения работы
-Сделать асистента
 Сдеалть вывод отчёта по вычитаным часам
+Сделать график с текущеми показателями выполнения работы
 Сделать отправку отчёта на заданную дату и электронный адрес
 '''
