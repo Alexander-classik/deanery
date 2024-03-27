@@ -46,7 +46,11 @@ while True:
     check_input = 'SELECT `type_week_id` FROM `date_type_week` WHERE `date_week` = %s'
     cursor.execute(check_input, data_db)
     result.append(cursor.fetchone()[0])
-    result.append(config_base_schedule[0]['path_line'])
+    data_db = []
+    data_db.append(config_base_schedule[0]['path_line'])
+    check_input = 'SELECT `id` FROM `sprav_schedule` WHERE `name` = %s'
+    cursor.execute(check_input, data_db)
+    result.append(cursor.fetchone()[0])
     check_sc = 'SELECT * FROM `schedule_changes` WHERE `date_changes` = %s'
     cursor.execute(check_sc, data_db)
     schedule_c = cursor.fetchall()
