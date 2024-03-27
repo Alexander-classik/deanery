@@ -2831,6 +2831,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.create_students_Ui()
         self.update_students_Ui()
         self.delete_students_Ui()
+        self.gen_ved_Ui()
         self.set_email_Ui()
         self.open_pars_date_week.clicked.connect(self.pars_win_date_week)
         self.pars_date_week.clicked.connect(self.parser_date_week)
@@ -2895,7 +2896,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             worksheet.cells.get("B2").put_value(self.password_line.text())
             worksheet.cells.get("C2").put_value(self.user_line.text())
             workbook.save("config_set_email.json")
-
 
     def gen_ved_Ui(self):
         self.combo90 = QComboBox(self)
@@ -3133,25 +3133,25 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         builder.write("Подпись")
         builder.end_row()
         for i in range(0, len(arr_students)):
-            for j in range(0, len(arr_students[i])):
-                builder.insert_cell()
-                builder.paragraph_format.alignment = aw.ParagraphAlignment.CENTER
-                builder.font.size = 12
-                builder.font.name = "Times New Roman"
-                builder.font.bold = False
-                builder.write(i+1)
-                builder.insert_cell()
-                builder.write(str(arr_students[i][0]))
-                builder.insert_cell()
-                builder.cell_format.width = 300.0
-                builder.write(str(arr_students[i][1]))
-                builder.cell_format.width = 300.0
-                builder.insert_cell()
-                builder.write("")
-                builder.cell_format.width = 300.0
-                builder.insert_cell()
-                builder.write("")
-                builder.end_row()
+            num = i+1
+            builder.insert_cell()
+            builder.paragraph_format.alignment = aw.ParagraphAlignment.CENTER
+            builder.font.size = 12
+            builder.font.name = "Times New Roman"
+            builder.font.bold = False
+            builder.write(str(num))
+            builder.insert_cell()
+            builder.write(str(arr_students[i][0]))
+            builder.insert_cell()
+            builder.cell_format.width = 300.0
+            builder.write(str(arr_students[i][1]))
+            builder.cell_format.width = 300.0
+            builder.insert_cell()
+            builder.write("")
+            builder.cell_format.width = 300.0
+            builder.insert_cell()
+            builder.write("")
+            builder.end_row()
         builder.end_table()
         builder.write('\n')
         builder.start_table()
