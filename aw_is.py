@@ -495,6 +495,7 @@ class Ui_MainWindow(QtWidgets.QWidget):
         self.upload_db = QtWidgets.QPushButton(self.centralwidget)
         self.upload_db.setGeometry(QtCore.QRect(30, 150, 241, 55))
         self.upload_db.setObjectName("upload_db")
+
         self.upload_users_btn = QtWidgets.QPushButton(self.centralwidget)
         self.upload_users_btn.setGeometry(QtCore.QRect(30, 150, 241, 55))
         self.upload_users_btn.setObjectName("upload_users_btn")
@@ -508,7 +509,7 @@ class Ui_MainWindow(QtWidgets.QWidget):
     # подпись надписей и кнопок
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "Автоматизированное рабочее место"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "Кофигуратор"))
         self.options_db.setText(_translate("MainWindow", "Настроить базу данных"))
         self.upload_db.setText(_translate("MainWindow", "Заполнить базу данных"))
         self.upload_users_btn.setText(_translate("MainWindow", "Загрузить список пользователей"))
@@ -591,7 +592,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             'roles_id int, teachers_id int, foreign key (roles_id) references `roles` (id), foreign key (teachers_id) '
             'references teachers (id))')
         conn.commit()
-
+        self.input_org()
         roles_arr = ['Преподаватель', 'Учебная часть', 'Администратор']
         for i in range(0, len(roles_arr)):
             role_name = []
@@ -631,6 +632,21 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                     "Учётная запись администратора создана успешно! Данные для входа: логин: admin | пароль: admin1")
                 bttn = self.dlg.exec()
 
+    def input_org(self):
+        self.org_line = QtWidgets.QLineEdit()
+        self.org_line.setGeometry(QtCore.QRect(10, 130, 221, 25))
+        self.org_line.setObjectName("org_line")
+        conn = self.connectDB()
+        cursor = conn.cursor(buffered=True)
+        text, ok = QInputDialog.getText(self, 'Название организации', 'Название организации')
+        if ok:
+            self.org_line.setText(str(text))
+        in_org = 'INSERT INTO `organization` (`name`) VALUES (%s)'
+        org_name = []
+        org_name.append(self.org_line.text())
+        cursor.execute(in_org, org_name)
+        conn.commit()
+
     def optionsDB(self):
         self.ODB = OptionsDB(self)
         self.ODB.show()
@@ -650,7 +666,7 @@ if is_admin():
         splash = QtWidgets.QSplashScreen()
         splash.setPixmap(QtGui.QPixmap('images/splash1.jpg'))
         splash.show()
-        splash.showMessage('<h1 style="color:#000c36;">Добро пожаловать в АРМ Деканат (beta)</h1>',
+        splash.showMessage('<h1 style="color:#000c36;">Добро пожаловать в Кофигуратор Деканат (beta)</h1>',
                            QtCore.Qt.AlignTop | QtCore.Qt.AlignLeft, QtCore.Qt.white)
         QtCore.QThread.msleep(5000)
         w = MainWindow()

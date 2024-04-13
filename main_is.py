@@ -341,7 +341,7 @@ class UpdateQuestion(QtWidgets.QDialog, Ui_UpdateQuestion):
         self.table.setRowCount(len(vopr_id))
         self.table.setHorizontalHeaderLabels(
             ["Номер", "Дисциплина", "Задание", "Тип задания", "Преподаватель", "Группа",
-             "Курсы", "Год поступления", "Период", "Раздел", "ОО"])
+             "Курсы", "Год поступления", "Сессионный период", "Раздел", "ОО"])
         for i in range(0, len(vopr_id)):
             v_id = []
             v_id.append(vopr_id[i][0])
@@ -598,7 +598,7 @@ class DeleteQuestion(QtWidgets.QDialog, Ui_DeleteQuestion):
         self.table.setRowCount(len(vopr_id))
         self.table.setHorizontalHeaderLabels(
             ["Статус", "Номер", "Дисциплина", "Задание", "Тип задания", "Преподаватель", "Группа",
-             "Курсы", "Год поступления", "Период", "Раздел", "ОО"])
+             "Курсы", "Год поступления", "Сессионный период", "Раздел", "ОО"])
         self.table.horizontalHeaderItem(1).setToolTip("Column 1")
         self.table.horizontalHeaderItem(2).setToolTip("Column 2")
         self.table.horizontalHeaderItem(3).setToolTip("Column 3")
@@ -1446,7 +1446,7 @@ class Ui_MainWindow(QtWidgets.QWidget):
         self.label_49.setText(_translate("MainWindow", "Выберите образовательную организацию:"))
         self.label_48.setText(_translate("MainWindow", "Выберите модуль/раздел:"))
         self.label_47.setText(_translate("MainWindow", "Выберите тип задания:"))
-        self.label_46.setText(_translate("MainWindow", "Выберите период:"))
+        self.label_46.setText(_translate("MainWindow", "Выберите сессионный период:"))
         self.label_45.setText(_translate("MainWindow", "Выберите год поступления:"))
         self.label_44.setText(_translate("MainWindow", "Выберите курс:"))
         self.label_43.setText(_translate("MainWindow", "Выберите группу:"))
@@ -1455,7 +1455,7 @@ class Ui_MainWindow(QtWidgets.QWidget):
         self.label_39.setText(_translate("MainWindow", "Выберите образовательную организацию:"))
         self.label_38.setText(_translate("MainWindow", "Выберите модуль/раздел:"))
         self.label_37.setText(_translate("MainWindow", "Выберите тип задания:"))
-        self.label_36.setText(_translate("MainWindow", "Выберите период:"))
+        self.label_36.setText(_translate("MainWindow", "Выберите сессионный период:"))
         self.label_35.setText(_translate("MainWindow", "Выберите год поступления:"))
         self.label_34.setText(_translate("MainWindow", "Выберите курс:"))
         self.label_33.setText(_translate("MainWindow", "Выберите группу:"))
@@ -1463,7 +1463,7 @@ class Ui_MainWindow(QtWidgets.QWidget):
         self.label_31.setText(_translate("MainWindow", "Выберите дисциплину:"))
         self.label_29.setText(_translate("MainWindow", "Введите название модуля/раздела:"))
         self.label_28.setText(_translate("MainWindow", "Выберите тип задания:"))
-        self.label_27.setText(_translate("MainWindow", "Выберите период:"))
+        self.label_27.setText(_translate("MainWindow", "Выберите сессионный период:"))
         self.label_26.setText(_translate("MainWindow", "Выберите год поступления:"))
         self.label_25.setText(_translate("MainWindow", "Выберите курс:"))
         self.label_24.setText(_translate("MainWindow", "Выберите группу:"))
@@ -1471,14 +1471,14 @@ class Ui_MainWindow(QtWidgets.QWidget):
         self.label_22.setText(_translate("MainWindow", "Выберите образовательную организацию:"))
         self.label_21.setText(_translate("MainWindow", "Выберите дисциплину:"))
         self.label_18.setText(_translate("MainWindow", "Выберите образовательную организацию:"))
-        self.label_17.setText(_translate("MainWindow", "Выберите период:"))
+        self.label_17.setText(_translate("MainWindow", "Выберите сессионный период:"))
         self.label_16.setText(_translate("MainWindow", "Выберите год поступления:"))
         self.label_15.setText(_translate("MainWindow", "Выберите курс:"))
         self.label_14.setText(_translate("MainWindow", "Выберите группу:"))
         self.label_13.setText(_translate("MainWindow", "Выберите преподавателя:"))
         self.label_11.setText(_translate("MainWindow", "Выберите дисциплину:"))
         self.label_8.setText(_translate("MainWindow", "Выберите образовательную организацию:"))
-        self.label_7.setText(_translate("MainWindow", "Выберите период:"))
+        self.label_7.setText(_translate("MainWindow", "Выберите сессионный период:"))
         self.label_6.setText(_translate("MainWindow", "Выберите год поступления:"))
         self.label_5.setText(_translate("MainWindow", "Выберите курс:"))
         self.label_4.setText(_translate("MainWindow", "Выберите группу:"))
@@ -2794,7 +2794,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                     check_input = 'SELECT `id` FROM `periods` WHERE `name` = %s'
                     cursor.execute(check_input, data_db)
                     result.append(cursor.fetchone()[0])
-                elif j == 9:
+                    data_db = []
                     data_db.append(self.combo70.currentText())
                     check_input = 'SELECT `id` FROM `organization` WHERE `name` = %s'
                     cursor.execute(check_input, data_db)
@@ -3020,7 +3020,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         count_tasks_to_block.append(type_t[3])
         count_tasks_to_block.append(type_t[4])
         count_tasks_to_block.append(type_t[5])
-        cursor.execute("SELECT `id` FROM type_tasks WHERE `name` = 'теория'")
+        cursor.execute("SELECT `id` FROM type_tasks WHERE `name` = 'теоретический вопрос'")
         count_tasks_to_block.append(cursor.fetchone()[0])
         count_tasks_to_block.append(0)
         count_tasks_to_block.append(type_t[6])
@@ -3032,16 +3032,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                                     'AND type_tasks_id = %s AND blocks_id = %s AND organization_id = %s'
             cursor.execute(sel_check_blocks_teor, count_tasks_to_block)
             check_blocks_teor.append(cursor.fetchone()[0])
-        cursor.execute("SELECT `id` FROM type_tasks WHERE `name` = 'практика'")
-        count_tasks_to_block[6] = cursor.fetchone()[0]
-        check_blocks_pract = []
-        for i in range(0, len(block_list_id)):
-            count_tasks_to_block[7] = block_list_id[i]
-            sel_check_blocks_pract = 'SELECT count(blocks_id) FROM tokens WHERE subjects_id = %s AND teachers_id = %s ' \
-                                     'AND groups_id = %s AND courses_id = %s AND year_enter_id = %s AND periods_id = %s ' \
-                                     'AND type_tasks_id = %s AND blocks_id = %s AND organization_id = %s'
-            cursor.execute(sel_check_blocks_pract, count_tasks_to_block)
-            check_blocks_pract.append(cursor.fetchone()[0])
         set_ = 0
         minimal = int(check_blocks_teor[0])
         for i in range(0, len(check_blocks_teor)):
@@ -3050,8 +3040,17 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                         (int(self.tokens_line.text()) * int(self.num_blocks_t[i])) / int(check_blocks_teor[i])):
                     set_ = math.ceil(
                         (int(self.tokens_line.text()) * int(self.num_blocks_t[i])) / int(check_blocks_teor[i]))
-
         if self.practic == True:
+            cursor.execute("SELECT `id` FROM type_tasks WHERE `name` = 'практический вопрос'")
+            count_tasks_to_block[6] = cursor.fetchone()[0]
+            check_blocks_pract = []
+            for i in range(0, len(block_list_id)):
+                count_tasks_to_block[7] = block_list_id[i]
+                sel_check_blocks_pract = 'SELECT count(blocks_id) FROM tokens WHERE subjects_id = %s AND teachers_id = %s ' \
+                                         'AND groups_id = %s AND courses_id = %s AND year_enter_id = %s AND periods_id = %s ' \
+                                         'AND type_tasks_id = %s AND blocks_id = %s AND organization_id = %s'
+                cursor.execute(sel_check_blocks_pract, count_tasks_to_block)
+                check_blocks_pract.append(cursor.fetchone()[0])
             for i in range(0, len(check_blocks_pract)):
                 if int(check_blocks_pract[i]) < (int(self.tokens_line.text()) * int(self.num_blocks_p[i])):
                     if set_ < math.ceil(
@@ -3100,7 +3099,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                     for y in range(0, len(check_token)):
                         ct_set.append(check_token[y][1])
                 for i in range(0, len(block_list_id)):
-                    cursor.execute("SELECT `id` FROM `type_tasks` WHERE `name` = 'теория'")
+                    cursor.execute("SELECT `id` FROM `type_tasks` WHERE `name` = 'теоретический вопрос'")
                     sel_teor = cursor.fetchone()
                     type_t[7] = sel_teor[0]
                     write = 0
@@ -3174,14 +3173,14 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                         cursor.execute(input_exam_tokens, exam_token)
                         conn.commit()
                     if self.practic == True:
-                        cursor.execute("SELECT `id` FROM `type_tasks` WHERE `name` = 'практика'")
+                        cursor.execute("SELECT `id` FROM `type_tasks` WHERE `name` = 'практический вопрос'")
                         sel_practic = cursor.fetchone()
-                        type_t[6] = sel_practic[0]
+                        type_t[7] = sel_practic[0]
                         type_task_id = []
                         id_teor = 'SELECT `id` FROM `tokens` ' \
                                   'WHERE `subjects_id` = %s AND `teachers_id` = %s ' \
                                   'AND `groups_id` = %s AND `courses_id` = %s ' \
-                                  'AND `year_enter_id` = %s AND `periods_id` = %s AND `organization` = %s ' \
+                                  'AND `year_enter_id` = %s AND `periods_id` = %s AND `organization_id` = %s ' \
                                   'AND `type_tasks_id` = %s AND `blocks_id` = %s'
                         cursor.execute(id_teor, type_t)
                         check_teor = cursor.fetchall()
@@ -3320,7 +3319,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         blocks_id.append(0)
         right = True
         for i in range(0, len(self.result_blocks_id) - 1):
-            cursor.execute("SELECT `id` FROM `type_tasks` WHERE `name` = 'теория'")
+            cursor.execute("SELECT `id` FROM `type_tasks` WHERE `name` = 'теоретический вопрос'")
             blocks_id[6] = self.result_blocks_id[i][0]
             blocks_id[7] = cursor.fetchone()[0]
             sel_count_tasks = "SELECT COUNT(`id`) FROM `tokens` WHERE `subjects_id` = %s AND `teachers_id` = %s AND " \
@@ -3343,7 +3342,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                         right = False
                         break
                 if right == True:
-                    cursor.execute("SELECT `id` FROM `type_tasks` WHERE `name` = 'практика'")
+                    cursor.execute("SELECT `id` FROM `type_tasks` WHERE `name` = 'практический вопрос'")
                     blocks_id[7] = cursor.fetchone()[0]
                     sel_count_tasks = "SELECT COUNT(`id`) FROM `tokens` WHERE `subjects_id` = %s AND `teachers_id` = %s AND " \
                                       "`groups_id` = %s AND `courses_id` = %s AND `year_enter_id` = %s AND `periods_id` = %s " \
